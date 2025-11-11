@@ -26,14 +26,23 @@ def eval_rollout(dataset, encoder, rssm, decoder, T=5):
         # rollout
         stoch_state = post_stoch
         deter_state = deter
+
+        ground_truth_images = []
+        reconstructed_images = []
+
         for t in range(action_seq.size(1)):
-            wandb.log({"Ground Truth": wandb.Image(sample.observation[0, t]) })
-            wandb.log({"Reconstruction": wandb.Image(decoder(stoch_state)[0]) })
+            #wandb.log({"Ground Truth": wandb.Image(sample.observation[0, t]) })
+            #wandb.log({"Reconstruction": wandb.Image(decoder(stoch_state)[0]) })
+            ground_truth_images.append(wandb.Image(sample.observation[0, t]))
+            reconstructed_images.append(wandb.Image(decoder(stoch_state)[0]))
 
             prior_stoch, prior_mean, prior_std, _, _, _, deter_state = rssm(
                 stoch_state, deter_state, action_seq[:, t], embed=None  # embed=None: imagination
             )
             stoch_state = prior_stoch
+        
+        wandb.log({"Ground Truth": ground_truth_images})
+        wandb.log({"Imagination": reconstructed_images})
         
 
 def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key):
