@@ -36,7 +36,7 @@ def eval_rollout(dataset):
             stoch_state = prior_stoch
         
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--lr', type=float)
     parser.add_argument('--epochs', type=int)
