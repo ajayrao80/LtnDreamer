@@ -11,7 +11,7 @@ class Dataset:
 
     def get_dataset_train(self):
         loaded_data = np.load(self.dataset_path)
-        buffer = ReplayBuffer(self.observation_shape, self.action_size, self.device)
+        buffer = ReplayBuffer(self.observation_shape, self.action_size, self.device, capacity=loaded_data["observation"].shape[0])
         for observation, action in zip(loaded_data["observation"], loaded_data["action"]):
             buffer.add(observation=observation, action=action)
         
@@ -19,7 +19,7 @@ class Dataset:
     
     def get_dataset_test(self):
         loaded_data = np.load(self.dataset_path_test)
-        buffer = ReplayBuffer(self.observation_shape, self.action_size, self.device)
+        buffer = ReplayBuffer(self.observation_shape, self.action_size, self.device, capacity=loaded_data["observation"].shape[0])
         for observation, action in zip(loaded_data["observation"], loaded_data["action"]):
             buffer.add(observation=observation, action=action)
         
