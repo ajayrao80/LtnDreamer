@@ -8,7 +8,7 @@ from dataset.dataset import Dataset
 from utils.utils import log
 import wandb
 
-def eval_rollout(dataset):
+def eval_rollout(dataset, encoder, rssm, decoder):
     with torch.no_grad():
         sample = dataset.sample(1, T)
         initial_obs = sample.observation[0, 0].unsqueeze(0)
@@ -36,40 +36,28 @@ def eval_rollout(dataset):
             stoch_state = prior_stoch
         
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--lr', type=float)
-    parser.add_argument('--epochs', type=int)
-    parser.add_argument('--embed_dim', type=int)
-    parser.add_argument('--stoch_dim', type=int)
-    parser.add_argument('--deter_dim', type=int)
-    parser.add_argument('--dataset_train_path', type=str)
-    parser.add_argument('--dataset_test_path', type=str)
-    parser.add_argument('--beta', type=float)
-    parser.add_argument('--login_key', type=str)
-    args = parser.parse_args()
-
+def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key):
     obs_shape = (3, 128, 128)
     action_dim = 7
-    embed_dim = args.embed_dim
-    stoch_dim = args.stoch_dim
-    deter_dim = args.deter_dim
+    embed_dim = embed_dim
+    stoch_dim = stoch_dim
+    deter_dim = deter_dim
 
     device = "cuda" if torch.cuda.is_available() else 'cpu'
 
     encoder = Encoder(obs_shape, embed_dim).to(device)
     decoder = Decoder(embed_dim, obs_shape).to(device)
     rssm = RSSM(action_dim, stoch_dim, deter_dim, embed_dim).to(device)
-    optim_model = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters()) + list(rssm.parameters()), lr=1e-5)
-    dataset_object = Dataset(obs_shape, action_dim, device, args.dataset_train_path, args.dataset_test_path)
+    optim_model = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters()) + list(rssm.parameters()), lr=lr)
+    dataset_object = Dataset(obs_shape, action_dim, device, dataset_train_path, dataset_test_path)
     dataset_train = dataset_object.get_dataset_train()
     dataset_test = dataset_object.get_dataset_test()
 
     B, T = 32, 5
     total_iterations = 750
-    epochs = args.epochs
-    beta = args.beta
-    login_key = args.login_key
+    epochs = epochs
+    beta = beta
+    login_key = login_key
 
     wandb.login(key=login_key)
     wandb.init(project="vanilla_world_model")
@@ -109,7 +97,7 @@ def main():
         wandb.log({"Epoch": epoch})
         wandb.log({"Reconstruction Loss": recon_loss.item()})
         wandb.log({"KLD Loss": kld_loss.item()})
-        eval_rollout(dataset_test)
+        eval_rollout(dataset_test, encoder, rssm, decoder)
         print(f"Epoch {epoch}: recon_loss={recon_loss.item():.2f}, kld_loss={kld_loss.item():.2f}")
     
     wandb.finish()
