@@ -8,7 +8,7 @@ from dataset.dataset import Dataset
 from utils.utils import log
 import wandb
 
-def eval_rollout(dataset, encoder, rssm, decoder):
+def eval_rollout(dataset, encoder, rssm, decoder, T=5):
     with torch.no_grad():
         sample = dataset.sample(1, T)
         initial_obs = sample.observation[0, 0].unsqueeze(0)
