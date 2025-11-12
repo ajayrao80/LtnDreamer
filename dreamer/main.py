@@ -30,14 +30,14 @@ def eval_rollout(dataset, encoder, rssm, decoder, T=5):
         ground_truth_images = []
         reconstructed_images = []
 
-        for t in range(action_seq.size(1)):
+        for t in range(1, action_seq.size(1)):
             #wandb.log({"Ground Truth": wandb.Image(sample.observation[0, t]) })
             #wandb.log({"Reconstruction": wandb.Image(decoder(stoch_state)[0]) })
             ground_truth_images.append(wandb.Image(sample.observation[0, t]))
             reconstructed_images.append(wandb.Image(decoder(stoch_state)[0]))
 
             prior_stoch, prior_mean, prior_std, _, _, _, deter_state = rssm(
-                stoch_state, deter_state, action_seq[:, t], embed=None  # embed=None: imagination
+                stoch_state, deter_state, action_seq[:, t-1], embed=None  # embed=None: imagination
             )
             stoch_state = prior_stoch
         
@@ -45,7 +45,7 @@ def eval_rollout(dataset, encoder, rssm, decoder, T=5):
         wandb.log({"Imagination": reconstructed_images})
         
 
-def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key):
+def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, free_nats=3.0):
     obs_shape = (3, 128, 128)
     action_dim = 7
     embed_dim = embed_dim
@@ -78,12 +78,12 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             kld_loss = 0.
             recon_loss = 0.
 
-            for t in range(T):
+            for t in range(1, T):
                 sample = dataset_train.sample(B, T)
                 obs = sample.observation 
                 actions = sample.action        
                 embed = encoder(obs[:, t])
-                prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(stoch, deter, actions[:, t], embed)
+                prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(stoch, deter, actions[:, t-1], embed)
                 recon_mean = decoder(post_stoch)
                 fixed_std = 1.0
                 dist = torch.distributions.Normal(recon_mean, fixed_std)
@@ -94,6 +94,10 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                     torch.distributions.Normal(post_mean, post_std),
                     torch.distributions.Normal(prior_mean, prior_std)
                 ).mean()
+
+                kld = torch.max(
+                    torch.tensor(free_nats).to(device), kld
+                )
 
                 kld_loss += kld
                 stoch = post_stoch
