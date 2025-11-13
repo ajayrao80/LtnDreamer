@@ -74,8 +74,5 @@ def main(dataset_train_path, dataset_test_path, login_key, batch_size=32, lr=0.0
     train(ltn_obj=LTNObject, optimizer=optimizer, dataloader_train=dataloader_train, dataloader_test=dataloader_test, epochs=epochs)
     wandb.finish()
 
-
-main("../../dataset/cube_traj_dataset_train.npz", "../../dataset/cube_traj_dataset_test.npz", "9344322800342d92a14b2a59c0a58278aa02ae93")
-
     
 
