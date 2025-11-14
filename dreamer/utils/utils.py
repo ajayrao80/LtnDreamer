@@ -124,4 +124,7 @@ def log(sample_obs, encoder, decoder, rssm, deter_dim, stoch_dim, action_dim, de
         #show(recon_img) # prior
         #show(recon_img_post)
         #show(original_img)
+    
+def save_model(model, epochs, name, path):
+    torch.save(model.state_dict(), f"{path}/world_model_{name}_{epochs}")
 

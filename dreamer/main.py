@@ -7,6 +7,7 @@ import torch
 from dataset.dataset import Dataset
 from utils.utils import log
 import wandb
+from utils.utils import save_model
 
 def eval_loss(dataset, encoder, rssm, decoder, T=5, batch_size=32):
     encoder.eval()
@@ -92,9 +93,8 @@ def eval_rollout(dataset, encoder, rssm, decoder, T=5):
         }
 
         return roll_outs
-        
 
-def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, free_nats=3.0):
+def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, free_nats=3.0):
     obs_shape = (3, 128, 128)
     action_dim = 7
     embed_dim = embed_dim
@@ -174,6 +174,10 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         print(f"Epoch {epoch}: recon_loss={recon_loss.item():.2f}, kld_loss={kld_loss.item():.2f}")
     
     wandb.finish()
+    save_model(encoder, epochs, "encoder", model_save_path)
+    save_model(decoder, epochs, "decoder", model_save_path)
+    save_model(rssm, epochs, "rssm", model_save_path)
+    
 
 
 
