@@ -6,7 +6,7 @@ import wandb
 
 def getreconstruction(dataloader_test, Front, Right, Up, dec, rot_plus, rot_minus, digits):
     print("showreconstruction")
-    initial_state_img_t, action_t, next_state_img_t = next(iter(dataloader_test))
+    initial_state_img_t, numbers_init_t, action_t, next_state_img_t, numbers_next_t = next(iter(dataloader_test))
     reconstructed = None
     
     with torch.no_grad():
@@ -14,9 +14,13 @@ def getreconstruction(dataloader_test, Front, Right, Up, dec, rot_plus, rot_minu
         right = Right(initial_state_img_t.to("cuda")) #.view(initial_state_img.shape[0], -1)
         up = Up(initial_state_img_t.to("cuda")) #.view(initial_state_img.shape[0], -1)
 
-        front_digit_classification = torch.argmax(torch.tensor([P(front[0].unsqueeze(0)).item() for P in digits])).item()
-        right_digit_classification = torch.argmax(torch.tensor([P(right[0].unsqueeze(0)).item() for P in digits])).item()
-        up_digit_classification = torch.argmax(torch.tensor([P(up[0].unsqueeze(0)).item() for P in digits])).item()
+        #front_digit_classification = torch.argmax(torch.tensor([P(front[0].unsqueeze(0)).item() for P in digits])).item()
+        #right_digit_classification = torch.argmax(torch.tensor([P(right[0].unsqueeze(0)).item() for P in digits])).item()
+        #up_digit_classification = torch.argmax(torch.tensor([P(up[0].unsqueeze(0)).item() for P in digits])).item()
+
+        front_digit_classification = digits(front[0].unsqueeze(0)).argmax().item()
+        right_digit_classification = digits(right[0].unsqueeze(0)).argmax().item()
+        up_digit_classification = digits(up[0].unsqueeze(0)).argmax().item()
 
         if action_t[0].item() == 0:
             decoded = dec(front[0].unsqueeze(0), rot_plus(right[0].unsqueeze(0)), front[0].unsqueeze(0)) 
@@ -51,8 +55,8 @@ def train(ltn_obj, optimizer, dataloader_train, dataloader_test, epochs, steps_l
         train_sat = 0
 
         i = 0
-        for init_image_, action_, next_image_ in dataloader_train:
-            sat_val = ltn_obj.compute_sat(init_image_.float().to("cuda"), action_.float().to("cuda"), next_image_.float().to("cuda"))
+        for init_image_, numbers_init_, action_, next_image_, numbers_next_ in dataloader_train:
+            sat_val = ltn_obj.compute_sat(init_image_.float().to("cuda"), action_.float().to("cuda"), next_image_.float().to("cuda"), numbers_init_.float().to("cuda"), numbers_next_.float().to("cuda"))
             
             optimizer.zero_grad()
             loss = 1.-sat_val

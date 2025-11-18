@@ -16,13 +16,13 @@ class LTNRules:
         self.Dec = ltn.Function(model=self.logic_models.dec)
         self.RotPlus = ltn.Function(model=self.logic_models.rot_plus)
         self.RotMinus = ltn.Function(model=self.logic_models.rot_minus)
-        self.DigitP = [ltn.Predicate(model=self.logic_models.digits[i]) for i in range(len(self.logic_models.digits))]
+        self.DigitP = ltn.Function(model=self.logic_models.digits) #[ltn.Predicate(model=self.logic_models.digits[i]) for i in range(len(self.logic_models.digits))]
 
         self.decoder_constraints = DecoderRules(self)
         self.encoder_constraints = EncoderRules(self)
         self.digit_constraints = DigitRules(self)
     
-    def compute_sat(self, init_image, actions_, next_image):
+    def compute_sat(self, init_image, actions_, next_image, digits_labels_init, digits_labels_next):
         # cube 1 -----------------------------------------------------------
         init_image_a_0 = ltn.Variable("init_image_a_0", init_image[actions_ == 0]) if init_image[actions_ == 0].shape[0] != 0 else None
         init_image_a_1 = ltn.Variable("init_image_a_1", init_image[actions_ == 1]) if init_image[actions_ == 1].shape[0] != 0 else None
@@ -41,13 +41,20 @@ class LTNRules:
 
         init_image_ = ltn.Variable("init_image_", init_image)
         next_image_ = ltn.Variable("next_image_", next_image)
+        digit_labels_f_init = ltn.Variable("digit_labels_f_init", digits_labels_init[:, 0])
+        digit_labels_r_init = ltn.Variable("digit_labels_r_init", digits_labels_init[:, 2]) 
+        digit_labels_u_init = ltn.Variable("digit_labels_u_init", digits_labels_init[:, 1]) 
+        digit_labels_f_next = ltn.Variable("digit_labels_f_next", digits_labels_next[:, 0])
+        digit_labels_r_next = ltn.Variable("digit_labels_r_next", digits_labels_next[:, 2])
+        digit_labels_u_next = ltn.Variable("digit_labels_u_next", digits_labels_next[:, 1])
+
         reconstruction_axioms_based_on_actions_1 = self.get_encoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
         reconstruction_axioms_based_on_actions_2 = self.get_decoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
-        digit_classification_rules = self.get_digit_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, init_image_, next_image_)
+        digit_classification_rules = self.get_digit_rules(init_image_, next_image_, digit_labels_f_init, digit_labels_r_init, digit_labels_u_init, digit_labels_f_next, digit_labels_r_next, digit_labels_u_next)
 
         sat_agg = SatAgg(
             *reconstruction_axioms_based_on_actions_1, *reconstruction_axioms_based_on_actions_2,
-            *digit_classification_rules 
+            digit_classification_rules 
         )
 
         print(f"sat agg: {sat_agg}")
@@ -77,13 +84,15 @@ class LTNRules:
         rules = [rule for rule in rules if rule is not None]
         return rules
 
-    def get_digit_rules(self, init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, init_image_, next_image_):
-        same_digit_rules = self.digit_constraints.get_same_digit_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
-        different_digit_rules = self.digit_constraints.get_different_digit_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
-        general_digit_constraints = self.digit_constraints.general_digit_constraints(init_image_, next_image_)
-        
-        rules = [*same_digit_rules, *different_digit_rules, *general_digit_constraints]
-        rules = [rule for rule in rules if rule is not None]
-        return rules
+    def get_digit_rules(self, init_image, next_image, digit_labels_f_init, digit_labels_r_init, digit_labels_u_init, digit_labels_f_next, digit_labels_r_next, digit_labels_u_next):
+        #same_digit_rules = self.digit_constraints.get_same_digit_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
+        #different_digit_rules = self.digit_constraints.get_different_digit_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
+        #general_digit_constraints = self.digit_constraints.general_digit_constraints(init_image_, next_image_)
+        digit_rules = self.digit_constraints.get_digit_rules(init_image, next_image, digit_labels_f_init, digit_labels_r_init, digit_labels_u_init, digit_labels_f_next, digit_labels_r_next, digit_labels_u_next)
+
+        #rules = get_digit_rules #[*same_digit_rules, *different_digit_rules, *general_digit_constraints]
+        #rules = [rule for rule in rules if rule is not None]
+        return digit_rules
 
 
+ 
