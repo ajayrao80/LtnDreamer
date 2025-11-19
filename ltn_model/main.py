@@ -75,9 +75,7 @@ def train(ltn_obj, optimizer, dataloader_train, dataloader_test, epochs, model_s
         train_sat = train_sat/len(dataloader_train)
         log(ltn_obj=ltn_obj, dataloader_test=dataloader_test, epoch=epoch, train_loss=train_loss, train_sat=train_sat)
         print(f"Epoch: {epoch} | Train loss: {train_loss} | Train Sat:{train_sat}")
-        ltn_obj.save_all_models(model_save_path)
-
-        
+        ltn_obj.logic_models.save_all_models(model_save_path)
 
 def main(dataset_train_path, dataset_test_path, model_save_path, login_key, batch_size=32, lr=0.00001, epochs=1):
     wandb.login(key=login_key)
@@ -97,3 +95,4 @@ def main(dataset_train_path, dataset_test_path, model_save_path, login_key, batc
 
     
 
+ 

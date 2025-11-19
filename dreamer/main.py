@@ -9,6 +9,7 @@ from utils.utils import log
 import wandb
 from utils.utils import save_model
 
+
 def eval_loss(dataset, encoder, rssm, decoder, T=5, batch_size=32):
     encoder.eval()
     decoder.eval()
@@ -138,7 +139,9 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 dist = torch.distributions.Normal(recon_mean, fixed_std)
                 recon_log_prob = dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()
                 recon_loss += -recon_log_prob
+                
 
+                
                 kld = torch.distributions.kl_divergence(
                     torch.distributions.Normal(post_mean, post_std),
                     torch.distributions.Normal(prior_mean, prior_std)
