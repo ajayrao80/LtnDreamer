@@ -57,7 +57,6 @@ def train(ltn_obj, optimizer, dataloader_train, dataloader_test, epochs, model_s
         #i = 0
         #for init_image_, numbers_init_, action_, next_image_, numbers_next_ in dataloader_train:
         for i, (init_image_, numbers_init_, action_, next_image_, numbers_next_) in enumerate(dataloader_train):
-            print(f"Processing batch {i} of epoch {epoch}")
             sat_val = ltn_obj.compute_sat(init_image_.float().to("cuda"), action_.float().to("cuda"), next_image_.float().to("cuda"), numbers_init_.float().to("cuda"), numbers_next_.float().to("cuda"))
             
             optimizer.zero_grad()
@@ -69,9 +68,7 @@ def train(ltn_obj, optimizer, dataloader_train, dataloader_test, epochs, model_s
             train_sat += sat_val
 
             if i % steps_log == 0:
-                log(ltn_obj=ltn_obj, dataloader_test=dataloader_test, epoch=epoch, train_loss=train_loss, train_sat=train_sat)
-
-            #i += 1
+                log(ltn_obj=ltn_obj, dataloader_test=dataloader_test, epoch=epoch, train_loss=train_loss/((i+1)*steps_log), train_sat=train_sat/((i+1)*steps_log))
 
         train_loss = train_loss/len(dataloader_train)
         train_sat = train_sat/len(dataloader_train)

@@ -1,5 +1,5 @@
 import ltn
-from ltn_qm.connectives_quantifiers import (Forall, And, Implies, Not, Exists, Eq)
+from ltn_qm.connectives_quantifiers import (Forall, And, Implies, Not, Exists)
 
 class DigitRules:
     def __init__(self, ltn_F_and_P):
@@ -16,7 +16,6 @@ class DigitRules:
         digit_rules_f_init_rp = Forall([init_image, digit_labels_f_init], self.ltn_F_and_P.DigitP(self.ltn_F_and_P.RotPlus(self.ltn_F_and_P.Front(init_image)), digit_labels_f_init))
         ltn.diag(init_image, digit_labels_f_init)
         digit_rules_f_init_rm = Forall([init_image, digit_labels_f_init], self.ltn_F_and_P.DigitP(self.ltn_F_and_P.RotMinus(self.ltn_F_and_P.Front(init_image)), digit_labels_f_init))
-        
         ltn.diag(init_image, digit_labels_r_init)
         digit_rules_r_init = Forall([init_image, digit_labels_r_init], self.ltn_F_and_P.DigitP(self.ltn_F_and_P.Right(init_image), digit_labels_r_init))
         ltn.diag(init_image, digit_labels_r_init)
@@ -49,9 +48,10 @@ class DigitRules:
         ltn.diag(next_image, digit_labels_u_next)
         digit_rules_u_next_rm = Forall([next_image, digit_labels_u_next], self.ltn_F_and_P.DigitP(self.ltn_F_and_P.RotMinus(self.ltn_F_and_P.Up(next_image)), digit_labels_u_next))
 
-        return And(And(And(And(And(And(And(digit_rules_f_init, digit_rules_r_init), digit_rules_u_init), digit_rules_f_next), digit_rules_r_next), digit_rules_u_next),
-                   And(And(And(And(And(digit_rules_f_init_rp, digit_rules_r_init_rp), digit_rules_u_init_rp), digit_rules_f_init_rm), digit_rules_r_init_rm), digit_rules_u_init_rm)),
-                   And(And(And(And(And(digit_rules_f_next_rp, digit_rules_r_next_rp), digit_rules_u_next_rp), digit_rules_f_next_rm), digit_rules_r_next_rm), digit_rules_u_next_rm))
+        rules = [digit_rules_f_init, digit_rules_f_init_rp, digit_rules_f_init_rm, digit_rules_r_init, digit_rules_r_init_rp, digit_rules_r_init_rm, digit_rules_u_init, digit_rules_u_init_rp, digit_rules_u_init_rm, 
+                 digit_rules_f_next, digit_rules_f_next_rp, digit_rules_f_next_rm, digit_rules_r_next, digit_rules_r_next_rp, digit_rules_r_next_rm, digit_rules_u_next, digit_rules_u_next_rp, digit_rules_u_next_rm]
+        
+        return rules
     
     def get_same_digit_rules(self, init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5):
         rules = []

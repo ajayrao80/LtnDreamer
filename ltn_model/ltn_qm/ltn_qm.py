@@ -56,10 +56,10 @@ class LTNRules:
 
         sat_agg = SatAgg(
             *reconstruction_axioms_based_on_actions_1, *reconstruction_axioms_based_on_actions_2,
-            digit_classification_rules 
+            *digit_classification_rules 
         )
 
-        print(f"sat agg: {sat_agg}")
+        #print(f"sat agg: {sat_agg}")
         return sat_agg   
 
     def get_encoder_rules(self, init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5):
