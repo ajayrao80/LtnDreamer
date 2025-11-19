@@ -8,8 +8,8 @@ from ltn_qm.digit_rules import DigitRules
 import torch
 
 class LTNRules:
-    def __init__(self):
-        self.logic_models = LTNModel()
+    def __init__(self, ltn_model=None):
+        self.logic_models = LTNModel() if ltn_model is None else ltn_model
         # Functions and predicates ------------------------------------------
         self.Front = ltn.Function(model=self.logic_models.front)
         self.Right = ltn.Function(model=self.logic_models.right)

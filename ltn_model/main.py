@@ -49,7 +49,7 @@ def log(ltn_obj, dataloader_test, epoch, train_loss, train_sat):
     wandb.log({ "gt_image_1": wandb.Image(log_dict["GT_image_1"]), "gt_image_2": wandb.Image(log_dict["GT_image_2"]), "reconstruction": wandb.Image(log_dict["Reconstruction"]), 
                 "front_digit": log_dict["front_digit"], "right_digit": log_dict["right_digit"], "up_digit": log_dict["up_digit"], "Epoch": epoch, "Loss": train_loss, "Sat": train_sat })
 
-def train(ltn_obj, optimizer, dataloader_train, dataloader_test, epochs, steps_log=20):
+def train(ltn_obj, optimizer, dataloader_train, dataloader_test, epochs, model_save_path, steps_log=20):
     for epoch in range(epochs):
         train_loss = 0
         train_sat = 0
@@ -75,8 +75,11 @@ def train(ltn_obj, optimizer, dataloader_train, dataloader_test, epochs, steps_l
         train_sat = train_sat/len(dataloader_train)
         log(ltn_obj=ltn_obj, dataloader_test=dataloader_test, epoch=epoch, train_loss=train_loss, train_sat=train_sat)
         print(f"Epoch: {epoch} | Train loss: {train_loss} | Train Sat:{train_sat}")
+        ltn_obj.save_all_models(model_save_path)
 
-def main(dataset_train_path, dataset_test_path, login_key, batch_size=32, lr=0.00001, epochs=1):
+        
+
+def main(dataset_train_path, dataset_test_path, model_save_path, login_key, batch_size=32, lr=0.00001, epochs=1):
     wandb.login(key=login_key)
     wandb.init(project="QM_LTN")
 
@@ -89,7 +92,7 @@ def main(dataset_train_path, dataset_test_path, login_key, batch_size=32, lr=0.0
     dataset_test = get_dataset(dataset_path=dataset_test_path)
     dataloader_test = DataLoader(dataset_test, batch_size=batch_size, shuffle=True)
 
-    train(ltn_obj=LTNObject, optimizer=optimizer, dataloader_train=dataloader_train, dataloader_test=dataloader_test, epochs=epochs)
+    train(ltn_obj=LTNObject, optimizer=optimizer, dataloader_train=dataloader_train, dataloader_test=dataloader_test, epochs=epochs, model_save_path=model_save_path)
     wandb.finish()
 
     
