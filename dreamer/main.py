@@ -51,7 +51,6 @@ def eval_loss(dataset, encoder, rssm, decoder, T=5, batch_size=32):
 
     return metrics
 
-
 def eval_rollout(dataset, encoder, rssm, decoder, T=5):
     with torch.no_grad():
         sample = dataset.sample(1, T)

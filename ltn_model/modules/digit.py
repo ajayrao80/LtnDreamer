@@ -17,7 +17,8 @@ class DigitClassifier(nn.Module):
             nn.Softmax()
         )
     
-    def forward(self, x):
+    def forward(self, x, d=None):
         out = self.network(x)
-        #out = torch.sum(out*d, dim=1)
-        return out.argmax(dim=1)
+        if d is not None:
+            out = torch.sum(out*d, dim=1)
+        return out

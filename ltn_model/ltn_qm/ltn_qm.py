@@ -5,6 +5,7 @@ from ltn_qm.connectives_quantifiers import (And, Or, Not, Forall, Exists, Implie
 from ltn_qm.decoder_rules import DecoderRules
 from ltn_qm.encoder_rules import EncoderRules
 from ltn_qm.digit_rules import DigitRules
+import torch
 
 class LTNRules:
     def __init__(self):
@@ -16,11 +17,12 @@ class LTNRules:
         self.Dec = ltn.Function(model=self.logic_models.dec)
         self.RotPlus = ltn.Function(model=self.logic_models.rot_plus)
         self.RotMinus = ltn.Function(model=self.logic_models.rot_minus)
-        self.DigitP = ltn.Function(model=self.logic_models.digits) #[ltn.Predicate(model=self.logic_models.digits[i]) for i in range(len(self.logic_models.digits))]
+        self.DigitP = ltn.Predicate(model=self.logic_models.digits) #[ltn.Predicate(model=self.logic_models.digits[i]) for i in range(len(self.logic_models.digits))]
 
         self.decoder_constraints = DecoderRules(self)
         self.encoder_constraints = EncoderRules(self)
         self.digit_constraints = DigitRules(self)
+        self.num_digit_classes = 10
     
     def compute_sat(self, init_image, actions_, next_image, digits_labels_init, digits_labels_next):
         # cube 1 -----------------------------------------------------------
@@ -41,12 +43,12 @@ class LTNRules:
 
         init_image_ = ltn.Variable("init_image_", init_image)
         next_image_ = ltn.Variable("next_image_", next_image)
-        digit_labels_f_init = ltn.Variable("digit_labels_f_init", digits_labels_init[:, 0])
-        digit_labels_r_init = ltn.Variable("digit_labels_r_init", digits_labels_init[:, 2]) 
-        digit_labels_u_init = ltn.Variable("digit_labels_u_init", digits_labels_init[:, 1]) 
-        digit_labels_f_next = ltn.Variable("digit_labels_f_next", digits_labels_next[:, 0])
-        digit_labels_r_next = ltn.Variable("digit_labels_r_next", digits_labels_next[:, 2])
-        digit_labels_u_next = ltn.Variable("digit_labels_u_next", digits_labels_next[:, 1])
+        digit_labels_f_init = ltn.Variable("digit_labels_f_init", torch.nn.functional.one_hot(digits_labels_init[:, 0].long(), self.num_digit_classes))
+        digit_labels_r_init = ltn.Variable("digit_labels_r_init", torch.nn.functional.one_hot(digits_labels_init[:, 2].long(), self.num_digit_classes)) 
+        digit_labels_u_init = ltn.Variable("digit_labels_u_init", torch.nn.functional.one_hot(digits_labels_init[:, 1].long(), self.num_digit_classes)) 
+        digit_labels_f_next = ltn.Variable("digit_labels_f_next", torch.nn.functional.one_hot(digits_labels_next[:, 0].long(), self.num_digit_classes))
+        digit_labels_r_next = ltn.Variable("digit_labels_r_next", torch.nn.functional.one_hot(digits_labels_next[:, 2].long(), self.num_digit_classes))
+        digit_labels_u_next = ltn.Variable("digit_labels_u_next", torch.nn.functional.one_hot(digits_labels_next[:, 1].long(), self.num_digit_classes))
 
         reconstruction_axioms_based_on_actions_1 = self.get_encoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
         reconstruction_axioms_based_on_actions_2 = self.get_decoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
