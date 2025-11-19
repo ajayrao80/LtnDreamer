@@ -140,7 +140,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 recon_log_prob = dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()
                 recon_loss += -recon_log_prob
                 
-
+                
                 
                 kld = torch.distributions.kl_divergence(
                     torch.distributions.Normal(post_mean, post_std),
