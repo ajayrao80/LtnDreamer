@@ -6,7 +6,7 @@ class CubeDataset(torch.utils.data.Dataset):
         self.dataset = _dataset
     
     def __len__(self):
-        return len(self.dataset)
+        return len(self.dataset["initial_state_img"])
     
     def __getitem__(self, index):
         return self.dataset["initial_state_img"][index], self.dataset["numbers_initial"][index], self.dataset["action"][index], self.dataset["next_state_img"][index], self.dataset["numbers_next"][index]
