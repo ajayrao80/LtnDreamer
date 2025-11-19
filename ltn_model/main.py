@@ -44,10 +44,10 @@ def getreconstruction(dataloader_test, Front, Right, Up, dec, rot_plus, rot_minu
     return { "GT_image_1": initial_state_img_t[0], "GT_image_2": next_state_img_t[0], "Reconstruction": reconstructed, "front_digit": front_digit_classification, "right_digit": right_digit_classification, "up_digit": up_digit_classification}
 
 
-def log(ltn_obj, dataloader_test, epoch, train_loss, train_sat):
+def log(ltn_obj, dataloader_test, epoch): #, train_loss, train_sat):
     log_dict = getreconstruction(dataloader_test, ltn_obj.logic_models.front, ltn_obj.logic_models.right, ltn_obj.logic_models.up, ltn_obj.logic_models.dec, ltn_obj.logic_models.rot_plus, ltn_obj.logic_models.rot_minus, ltn_obj.logic_models.digits)
     wandb.log({ "gt_image_1": wandb.Image(log_dict["GT_image_1"]), "gt_image_2": wandb.Image(log_dict["GT_image_2"]), "reconstruction": wandb.Image(log_dict["Reconstruction"]), 
-                "front_digit": log_dict["front_digit"], "right_digit": log_dict["right_digit"], "up_digit": log_dict["up_digit"], "Epoch": epoch, "Loss": train_loss, "Sat": train_sat })
+                "front_digit": log_dict["front_digit"], "right_digit": log_dict["right_digit"], "up_digit": log_dict["up_digit"], "Epoch": epoch}) #, "Loss": train_loss, "Sat": train_sat })
 
 def train(ltn_obj, optimizer, dataloader_train, dataloader_test, epochs, model_save_path, steps_log=20):
     for epoch in range(epochs):
@@ -68,7 +68,7 @@ def train(ltn_obj, optimizer, dataloader_train, dataloader_test, epochs, model_s
             train_sat += sat_val
 
             if i % steps_log == 0:
-                log(ltn_obj=ltn_obj, dataloader_test=dataloader_test, epoch=epoch, train_loss=train_loss/((i+1)*steps_log), train_sat=train_sat/((i+1)*steps_log))
+                log(ltn_obj=ltn_obj, dataloader_test=dataloader_test, epoch=epoch) #, train_loss=train_loss/((i+1)*steps_log), train_sat=train_sat/((i+1)*steps_log))
 
         train_loss = train_loss/len(dataloader_train)
         train_sat = train_sat/len(dataloader_train)
