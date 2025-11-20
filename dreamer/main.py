@@ -1,16 +1,16 @@
 import argparse
-from dataset.dataset import Dataset
-from modules.encoder import Encoder
-from modules.decoder import Decoder
-from modules.model import RSSM
+from dreamer.dataset.dataset import Dataset
+from dreamer.modules.encoder import Encoder
+from dreamer.modules.decoder import Decoder
+from dreamer.modules.model import RSSM
 import torch
-from dataset.dataset import Dataset
-from utils.utils import log
+from dreamer.utils.utils import log
 import wandb
-from utils.utils import save_model
+from dreamer.utils.utils import save_model
+from ltn_model.ltn_qm.logic_loss import LogicLoss
 
 
-def eval_loss(dataset, encoder, rssm, decoder, T=5, batch_size=32):
+def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_size=32):
     encoder.eval()
     decoder.eval()
     rssm.eval()
@@ -31,12 +31,16 @@ def eval_loss(dataset, encoder, rssm, decoder, T=5, batch_size=32):
         stoch = torch.zeros(B, stoch_dim, device=device)
 
         for t in range(1, T):
-            embed = encoder(obs[:, t])
+            embed = encoder(obs[:, t-1])
             prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(
                 stoch, deter, actions[:, t-1], embed)
-            dist = torch.distributions.Normal(decoder(post_stoch), 1.0)  # Decoder returns mean
+            
+            mean = decoder(post_stoch)
+            dist = torch.distributions.Normal(mean, 1.0)  # Decoder returns mean
             log_prob = dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()  # Per batch
             recon_loss_total += -log_prob
+
+            logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions[:, t-1], mean) if logic_loss_object is not None else "-"
 
             kld = torch.distributions.kl_divergence(
                 torch.distributions.Normal(post_mean, post_std),
@@ -47,7 +51,8 @@ def eval_loss(dataset, encoder, rssm, decoder, T=5, batch_size=32):
 
         metrics = {
             'reconstruction_logprob': recon_loss_total.item() / T,
-            'kl_loss': kld_loss_total.item() / T
+            'kl_loss': kld_loss_total.item() / T,
+            'logic_loss': logic_loss.item() / T
         }
 
     return metrics
@@ -94,7 +99,7 @@ def eval_rollout(dataset, encoder, rssm, decoder, T=5):
 
         return roll_outs
 
-def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, free_nats=3.0):
+def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model"):
     obs_shape = (3, 128, 128)
     action_dim = 7
     embed_dim = embed_dim
@@ -117,8 +122,12 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     beta = beta
     login_key = login_key
 
+    logic_loss_object = None
+    if logic_models_path is not None:
+        logic_loss_object = LogicLoss(logic_models_path, model_name_digits=None)
+
     wandb.login(key=login_key)
-    wandb.init(project="vanilla_world_model")
+    wandb.init(project=project_name)
 
     for epoch in range(epochs): 
         for iteration in range(total_iterations):
@@ -140,7 +149,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 recon_log_prob = dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()
                 recon_loss += -recon_log_prob
                 
-                
+                logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], torch.max(actions[:, t-1], dim=1, keepdim=True), recon_mean) if logic_models_path is not None else 0.
                 
                 kld = torch.distributions.kl_divergence(
                     torch.distributions.Normal(post_mean, post_std),
@@ -154,16 +163,17 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 kld_loss += kld
                 stoch = post_stoch
             
-            loss = recon_loss + kld_loss * beta
+            loss = recon_loss + (kld_loss * beta) + logic_loss
             optim_model.zero_grad()
             loss.backward()
             optim_model.step()
         
         rollout_metrics = eval_rollout(dataset_test, encoder, rssm, decoder)
-        loss_metrics = eval_loss(dataset_test, encoder, rssm, decoder)
+        loss_metrics = eval_loss(dataset_test, encoder, rssm, decoder, logic_loss_object)
         metrics = {
             "Epoch": epoch,
             "Reconstruction Loss Train": recon_loss.item(),
+            "Logic Loss Train": logic_loss.item(),
             "KLD Loss Train": kld_loss.item(),
             "Ground Truth": rollout_metrics["Ground Truth"],
             "Imagination": rollout_metrics["Imagination"],

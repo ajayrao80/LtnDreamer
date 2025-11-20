@@ -1,4 +1,4 @@
-from utils.utils import ReplayBuffer
+from dreamer.utils.utils import ReplayBuffer
 import numpy as np 
 
 class Dataset:

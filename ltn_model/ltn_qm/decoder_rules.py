@@ -1,5 +1,5 @@
 import ltn
-from ltn_qm.connectives_quantifiers import (Forall, Sim)
+from ltn_model.ltn_qm.connectives_quantifiers import (Forall, Sim)
 
 class DecoderRules:
     def __init__(self, ltn_F_and_P):

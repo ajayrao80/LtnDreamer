@@ -1,5 +1,5 @@
 import ltn
-from utils.utils import cosine_similarity
+from ltn_model.utils.utils import cosine_similarity
 import torch
 
 And = ltn.Connective(ltn.fuzzy_ops.AndProd())

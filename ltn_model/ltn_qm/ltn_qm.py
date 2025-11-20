@@ -1,10 +1,10 @@
-from modules.model import LTNModel
-from utils.utils import cosine_similarity
+from ltn_model.modules.model import LTNModel
+from ltn_model.utils.utils import cosine_similarity
 import ltn
-from ltn_qm.connectives_quantifiers import (And, Or, Not, Forall, Exists, Implies, SatAgg, Sim)
-from ltn_qm.decoder_rules import DecoderRules
-from ltn_qm.encoder_rules import EncoderRules
-from ltn_qm.digit_rules import DigitRules
+from ltn_model.ltn_qm.connectives_quantifiers import (And, Or, Not, Forall, Exists, Implies, SatAgg, Sim)
+from ltn_model.ltn_qm.decoder_rules import DecoderRules
+from ltn_model.ltn_qm.encoder_rules import EncoderRules
+from ltn_model.ltn_qm.digit_rules import DigitRules
 import torch
 
 class LTNRules:
@@ -24,7 +24,7 @@ class LTNRules:
         self.digit_constraints = DigitRules(self)
         self.num_digit_classes = 10
     
-    def compute_sat(self, init_image, actions_, next_image, digits_labels_init, digits_labels_next):
+    def compute_sat(self, init_image, actions_, next_image, digits_labels_init=None, digits_labels_next=None):
         # cube 1 -----------------------------------------------------------
         init_image_a_0 = ltn.Variable("init_image_a_0", init_image[actions_ == 0]) if init_image[actions_ == 0].shape[0] != 0 else None
         init_image_a_1 = ltn.Variable("init_image_a_1", init_image[actions_ == 1]) if init_image[actions_ == 1].shape[0] != 0 else None
@@ -41,24 +41,30 @@ class LTNRules:
         next_image_a_4 = ltn.Variable("next_image_a_4", next_image[actions_ == 4]) if next_image[actions_ == 4].shape[0] != 0 else None
         next_image_a_5 = ltn.Variable("next_image_a_5", next_image[actions_ == 5]) if next_image[actions_ == 5].shape[0] != 0 else None
 
-        init_image_ = ltn.Variable("init_image_", init_image)
-        next_image_ = ltn.Variable("next_image_", next_image)
-        digit_labels_f_init = ltn.Variable("digit_labels_f_init", torch.nn.functional.one_hot(digits_labels_init[:, 0].long(), self.num_digit_classes))
-        digit_labels_r_init = ltn.Variable("digit_labels_r_init", torch.nn.functional.one_hot(digits_labels_init[:, 2].long(), self.num_digit_classes)) 
-        digit_labels_u_init = ltn.Variable("digit_labels_u_init", torch.nn.functional.one_hot(digits_labels_init[:, 1].long(), self.num_digit_classes)) 
-        digit_labels_f_next = ltn.Variable("digit_labels_f_next", torch.nn.functional.one_hot(digits_labels_next[:, 0].long(), self.num_digit_classes))
-        digit_labels_r_next = ltn.Variable("digit_labels_r_next", torch.nn.functional.one_hot(digits_labels_next[:, 2].long(), self.num_digit_classes))
-        digit_labels_u_next = ltn.Variable("digit_labels_u_next", torch.nn.functional.one_hot(digits_labels_next[:, 1].long(), self.num_digit_classes))
-
         reconstruction_axioms_based_on_actions_1 = self.get_encoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
         reconstruction_axioms_based_on_actions_2 = self.get_decoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
-        digit_classification_rules = self.get_digit_rules(init_image_, next_image_, digit_labels_f_init, digit_labels_r_init, digit_labels_u_init, digit_labels_f_next, digit_labels_r_next, digit_labels_u_next)
 
-        sat_agg = SatAgg(
-            *reconstruction_axioms_based_on_actions_1, *reconstruction_axioms_based_on_actions_2,
-            *digit_classification_rules 
-        )
+        if digits_labels_init is not None:
+            init_image_ = ltn.Variable("init_image_", init_image)
+            next_image_ = ltn.Variable("next_image_", next_image)
+            digit_labels_f_init = ltn.Variable("digit_labels_f_init", torch.nn.functional.one_hot(digits_labels_init[:, 0].long(), self.num_digit_classes))
+            digit_labels_r_init = ltn.Variable("digit_labels_r_init", torch.nn.functional.one_hot(digits_labels_init[:, 2].long(), self.num_digit_classes)) 
+            digit_labels_u_init = ltn.Variable("digit_labels_u_init", torch.nn.functional.one_hot(digits_labels_init[:, 1].long(), self.num_digit_classes)) 
+            digit_labels_f_next = ltn.Variable("digit_labels_f_next", torch.nn.functional.one_hot(digits_labels_next[:, 0].long(), self.num_digit_classes))
+            digit_labels_r_next = ltn.Variable("digit_labels_r_next", torch.nn.functional.one_hot(digits_labels_next[:, 2].long(), self.num_digit_classes))
+            digit_labels_u_next = ltn.Variable("digit_labels_u_next", torch.nn.functional.one_hot(digits_labels_next[:, 1].long(), self.num_digit_classes))
 
+            digit_classification_rules = self.get_digit_rules(init_image_, next_image_, digit_labels_f_init, digit_labels_r_init, digit_labels_u_init, digit_labels_f_next, digit_labels_r_next, digit_labels_u_next)
+            sat_agg = SatAgg(
+                *reconstruction_axioms_based_on_actions_1, *reconstruction_axioms_based_on_actions_2,
+                *digit_classification_rules 
+            )
+        
+        else:
+            sat_agg = SatAgg(
+                *reconstruction_axioms_based_on_actions_1, *reconstruction_axioms_based_on_actions_2
+            )
+    
         #print(f"sat agg: {sat_agg}")
         return sat_agg   
 

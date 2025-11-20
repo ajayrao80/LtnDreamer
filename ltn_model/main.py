@@ -41,7 +41,7 @@ def getreconstruction(dataloader_test, Front, Right, Up, dec, rot_plus, rot_minu
             decoded = dec(rot_minus(front[0].unsqueeze(0)), right[0].unsqueeze(0), rot_minus(right[0].unsqueeze(0))) 
             #reconstructed = torch.nn.functional.sigmoid(decoded[0])
     
-    return { "GT_image_1": initial_state_img_t[0], "GT_image_2": next_state_img_t[0], "Reconstruction": decoded[0].clamp(0, 1), "front_digit": front_digit_classification, "right_digit": right_digit_classification, "up_digit": up_digit_classification}
+    return { "GT_image_1": initial_state_img_t[0], "GT_image_2": next_state_img_t[0], "Reconstruction": torch.nn.functional.tanh(decoded[0]).clamp(0, 1), "front_digit": front_digit_classification, "right_digit": right_digit_classification, "up_digit": up_digit_classification}
 
 def log(ltn_obj, dataloader_test, epoch, train_loss=None, train_sat=None):
     log_dict = getreconstruction(dataloader_test, ltn_obj.logic_models.front, ltn_obj.logic_models.right, ltn_obj.logic_models.up, ltn_obj.logic_models.dec, ltn_obj.logic_models.rot_plus, ltn_obj.logic_models.rot_minus, ltn_obj.logic_models.digits)

@@ -1,5 +1,5 @@
 import ltn
-from ltn_qm.connectives_quantifiers import (Forall, And, Implies, Not, Exists)
+from ltn_model.ltn_qm.connectives_quantifiers import (Forall, And, Implies, Not, Exists)
 
 class DigitRules:
     def __init__(self, ltn_F_and_P):

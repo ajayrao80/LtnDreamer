@@ -1,12 +1,12 @@
 import torch
 import torch.nn as nn
-from modules.orientation import RotQMinus
-from modules.orientation import RotQPlus
-from modules.face import Face
-from modules.decoder import Decoder
-from modules.digit import DigitClassifier
+from ltn_model.modules.orientation import RotQMinus
+from ltn_model.modules.orientation import RotQPlus
+from ltn_model.modules.face import Face
+from ltn_model.modules.decoder import Decoder
+from ltn_model.modules.digit import DigitClassifier
 from itertools import chain
-from utils.utils import save_model
+from ltn_model.utils.utils import save_model
 
 class LTNModel:
     def __init__(self, front_=None, right_=None, up_=None, dec_=None, rot_plus_=None, rot_minus_=None, digits_=None):
@@ -34,6 +34,20 @@ class LTNModel:
         save_model(self.rot_plus, save_path, "rot_plus")
         save_model(self.rot_minus, save_path, "rot_minus")
         save_model(self.digits, save_path, "digits")
+    
+    def load_model(self, path, model):
+        model.load_state_dict(torch.load(path, weights_only=True))
+        return model
+    
+    def load_all_models(self, model_path, front, right, up, dec, rot_plus, rot_minus, digits=None):
+        self.front = self.load_model(f"{model_path}/{front}", self.front)
+        self.right = self.load_model(f"{model_path}/{right}", self.right)
+        self.up = self.load_model(f"{model_path}/{up}", self.up)
+        self.dec = self.load_model(f"{model_path}/{dec}", self.dec)
+        self.rot_plus = self.load_model(f"{model_path}/{rot_plus}", self.rot_plus)
+        self.rot_minus = self.load_model(f"{model_path}/{rot_minus}", self.rot_minus)
+        self.digits = self.load_model(f"{model_path}/{digits}", self.digits) if digits is not None else self.digits
+        
 
 
         
