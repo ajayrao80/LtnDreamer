@@ -10,7 +10,7 @@ class LogicLoss:
         self.LTNObject = LTNRules(self.ltn_models)
     
     def compute_logic_loss(self, prev_state, action, next_state):
-        sat_val = self.LTNObject.compute_sat(prev_state, action.values.squeeze(1), next_state)
+        sat_val = self.LTNObject.compute_sat(prev_state, action, next_state)
         loss = 1. - sat_val
         return loss
 
