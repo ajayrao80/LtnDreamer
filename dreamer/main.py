@@ -24,6 +24,7 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_siz
 
         recon_loss_total = 0.
         kld_loss_total = 0.
+        logic_loss_total = 0.
 
         device = obs.device
 
@@ -37,9 +38,8 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_siz
             
             mean = decoder(post_stoch)
             dist = torch.distributions.Normal(mean, 1.0)  # Decoder returns mean
-            log_prob = dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()  # Per batch
-            recon_loss_total += -log_prob
-
+            log_prob = -dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()  # Per batch
+            
             actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
             logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, mean) if logic_loss_object is not None else "-"
 
@@ -47,13 +47,17 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_siz
                 torch.distributions.Normal(post_mean, post_std),
                 torch.distributions.Normal(prior_mean, prior_std)
             ).mean()
+
             kld_loss_total += kld
+            recon_loss_total += log_prob
+            logic_loss_total = logic_loss_total+logic_loss if logic_loss_object is not None else "-"
+
             stoch = post_stoch
 
         metrics = {
             'reconstruction_logprob': recon_loss_total.item() / T,
             'kl_loss': kld_loss_total.item() / T,
-            'logic_loss': logic_loss.item() / T
+            'logic_loss': logic_loss_total.item() / T
         }
 
     return metrics
@@ -137,6 +141,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             
             kld_loss = 0.
             recon_loss = 0.
+            logic_loss_total = 0.
 
             for t in range(1, T):
                 sample = dataset_train.sample(B, T)
@@ -152,6 +157,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
                 logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
+                logic_loss_total += logic_loss
                 
                 kld = torch.distributions.kl_divergence(
                     torch.distributions.Normal(post_mean, post_std),
@@ -165,7 +171,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 kld_loss += kld
                 stoch = post_stoch
             
-            loss = recon_loss + (kld_loss * beta) + logic_loss
+            loss = recon_loss + (kld_loss * beta) + logic_loss_total
             optim_model.zero_grad()
             loss.backward()
             optim_model.step()
@@ -180,7 +186,8 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             "Ground Truth": rollout_metrics["Ground Truth"],
             "Imagination": rollout_metrics["Imagination"],
             "Reconstruction Loss Test": loss_metrics["reconstruction_logprob"],
-            "KLD Loss Test": loss_metrics["kl_loss"]
+            "KLD Loss Test": loss_metrics["kl_loss"],
+            "Logic Loss Test": loss_metrics["logic_loss"]
         }
         wandb.log(metrics)
         #wandb.log({"Reconstruction Loss": recon_loss.item()})
