@@ -40,7 +40,8 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_siz
             log_prob = dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()  # Per batch
             recon_loss_total += -log_prob
 
-            logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions[:, t-1], mean) if logic_loss_object is not None else "-"
+            actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
+            logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, mean) if logic_loss_object is not None else "-"
 
             kld = torch.distributions.kl_divergence(
                 torch.distributions.Normal(post_mean, post_std),
@@ -150,7 +151,6 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 recon_loss += -recon_log_prob
                 
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
-                print(actions_batch)
                 logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
                 
                 kld = torch.distributions.kl_divergence(
