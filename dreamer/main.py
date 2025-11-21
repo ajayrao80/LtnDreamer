@@ -55,9 +55,9 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_siz
             stoch = post_stoch
 
         metrics = {
-            'reconstruction_logprob': recon_loss_total.item() / T,
-            'kl_loss': kld_loss_total.item() / T,
-            'logic_loss': logic_loss_total.item() / T
+            'reconstruction_logprob': recon_loss_total.item(),
+            'kl_loss': kld_loss_total.item(),
+            'logic_loss': logic_loss_total.item() * recon_loss_total.item()
         }
 
     return metrics
@@ -135,6 +135,11 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     wandb.init(project=project_name)
 
     for epoch in range(epochs): 
+        l = 0.
+        rl = 0.
+        kld_l = 0.
+        logic_l = 0.
+
         for iteration in range(total_iterations):
             deter = torch.zeros(B, deter_dim, device=device)
             stoch = torch.zeros(B, stoch_dim, device=device)
@@ -171,22 +176,28 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
 
                 kld_loss += kld
                 stoch = post_stoch
-            
-            recon_loss = recon_loss/total_iterations
-            kld_loss = kld_loss/total_iterations
+
+            logic_weight = recon_loss.item()
             logic_loss_total = logic_weight*logic_loss_total
-            loss = recon_loss + (kld_loss * beta) + logic_loss_total
+            kld_loss = (kld_loss * beta)
+            loss = recon_loss + kld_loss + logic_loss_total
             optim_model.zero_grad()
             loss.backward()
             optim_model.step()
+
+            l += loss.item()
+            logic_l += logic_l.item()
+            rl += recon_loss.item()
+            kld_l += kld_loss.item()
         
         rollout_metrics = eval_rollout(dataset_test, encoder, rssm, decoder)
         loss_metrics = eval_loss(dataset_test, encoder, rssm, decoder, logic_loss_object)
         metrics = {
             "Epoch": epoch,
-            "Reconstruction Loss Train": recon_loss.item(),
-            "Logic Loss Train": logic_loss_total.item(),
-            "KLD Loss Train": kld_loss.item(),
+            "Loss": l/epochs,
+            "Reconstruction Loss Train": rl/epochs,
+            "Logic Loss Train": logic_l/epochs,
+            "KLD Loss Train": kld_l/epochs,
             "Ground Truth": rollout_metrics["Ground Truth"],
             "Imagination": rollout_metrics["Imagination"],
             "Reconstruction Loss Test": loss_metrics["reconstruction_logprob"],
@@ -196,7 +207,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         wandb.log(metrics)
         #wandb.log({"Reconstruction Loss": recon_loss.item()})
         #wandb.log({"KLD Loss": kld_loss.item()})
-        print(f"Epoch {epoch}: recon_loss={recon_loss.item():.2f}, kld_loss={kld_loss.item():.2f}")
+        print(f"Epoch {epoch}: recon_loss={recon_loss.item():.2f}, kld_loss={kld_loss.item():.2f}, Logic loss:{logic_l}")
     
     wandb.finish()
     save_model(encoder, epochs, "encoder", model_save_path)
