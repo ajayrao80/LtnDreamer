@@ -186,7 +186,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             optim_model.step()
 
             l += loss.item()
-            logic_l += logic_l.item()
+            logic_l += logic_loss_total.item()
             rl += recon_loss.item()
             kld_l += kld_loss.item()
         
@@ -194,10 +194,10 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         loss_metrics = eval_loss(dataset_test, encoder, rssm, decoder, logic_loss_object)
         metrics = {
             "Epoch": epoch,
-            "Loss": l/epochs,
-            "Reconstruction Loss Train": rl/epochs,
-            "Logic Loss Train": logic_l/epochs,
-            "KLD Loss Train": kld_l/epochs,
+            "Loss": l/total_iterations,
+            "Reconstruction Loss Train": rl/total_iterations,
+            "Logic Loss Train": logic_l/total_iterations,
+            "KLD Loss Train": kld_l/total_iterations,
             "Ground Truth": rollout_metrics["Ground Truth"],
             "Imagination": rollout_metrics["Imagination"],
             "Reconstruction Loss Test": loss_metrics["reconstruction_logprob"],
