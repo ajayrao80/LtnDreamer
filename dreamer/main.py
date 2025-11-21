@@ -104,7 +104,7 @@ def eval_rollout(dataset, encoder, rssm, decoder, T=5):
 
         return roll_outs
 
-def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model"):
+def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model", logic_weight=1.0):
     obs_shape = (3, 128, 128)
     action_dim = 7
     embed_dim = embed_dim
@@ -125,7 +125,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     total_iterations = 750
     epochs = epochs
     beta = beta
-    login_key = login_key
+    #login_key = login_key
 
     logic_loss_object = None
     if logic_models_path is not None:
@@ -158,6 +158,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
                 logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
                 logic_loss_total += logic_loss
+                #print(f"Logic Loss: {logic_loss}, Logic Loss Total:{logic_loss_total}")
                 
                 kld = torch.distributions.kl_divergence(
                     torch.distributions.Normal(post_mean, post_std),
@@ -171,6 +172,9 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 kld_loss += kld
                 stoch = post_stoch
             
+            recon_loss = recon_loss/total_iterations
+            kld_loss = kld_loss/total_iterations
+            logic_loss_total = logic_weight*logic_loss_total
             loss = recon_loss + (kld_loss * beta) + logic_loss_total
             optim_model.zero_grad()
             loss.backward()

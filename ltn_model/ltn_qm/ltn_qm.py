@@ -61,9 +61,7 @@ class LTNRules:
             )
         
         else:
-            sat_agg = SatAgg(
-                *reconstruction_axioms_based_on_actions_1, *reconstruction_axioms_based_on_actions_2
-            )
+            sat_agg = SatAgg(*reconstruction_axioms_based_on_actions_1, *reconstruction_axioms_based_on_actions_2)
     
         #print(f"sat agg: {sat_agg}")
         return sat_agg   
