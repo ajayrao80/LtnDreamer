@@ -181,7 +181,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         metrics = {
             "Epoch": epoch,
             "Reconstruction Loss Train": recon_loss.item(),
-            "Logic Loss Train": logic_loss.item(),
+            "Logic Loss Train": logic_loss_total.item(),
             "KLD Loss Train": kld_loss.item(),
             "Ground Truth": rollout_metrics["Ground Truth"],
             "Imagination": rollout_metrics["Imagination"],
