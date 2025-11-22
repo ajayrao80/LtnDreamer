@@ -103,7 +103,7 @@ def eval_rollout(dataset, encoder, rssm, decoder, T=5):
 
         return roll_outs
 
-def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model", logic_weight=15000.0, logic_decay_rate=0.99, train_all=True):
+def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model", logic_weight=15000.0, logic_decay_rate=0.99, train_all=True, batch_size=32):
     obs_shape = (3, 128, 128)
     action_dim = 7
     embed_dim = embed_dim
@@ -119,8 +119,8 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     dataset_train = dataset_object.get_dataset_train()
     dataset_test = dataset_object.get_dataset_test()
 
-    B, T = 32, 5
-    total_iterations = 750
+    B, T = batch_size, 5
+    total_iterations = int(dataset_train.observation.shape[0] / B)
     epochs = epochs
     beta = beta
     #login_key = login_key
