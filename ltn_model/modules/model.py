@@ -17,13 +17,13 @@ class LTNModel:
         self.dec = Decoder().to(self.device) if dec_ is None else dec_
         self.rot_plus = RotQPlus().to(self.device) if rot_plus_ is None else rot_plus_
         self.rot_minus = RotQMinus().to(self.device) if rot_minus_ is None else rot_minus_
-        self.digits = DigitClassifier().to(self.device) if digits_ is None else digits_ #[DigitClassifier().to(self.device) for _ in range(10)]
+        #self.digits = DigitClassifier().to(self.device) if digits_ is None else digits_ #[DigitClassifier().to(self.device) for _ in range(10)]
     
     def get_params(self):
         #params = chain(
         #    *[model.parameters() for model in [self.front, self.right, self.up, self.dec, self.rot_plus, self.rot_minus, self.digits]]
         #)
-        params = list(self.front.parameters()) + list(self.right.parameters()) + list(self.up.parameters()) + list(self.dec.parameters()) + list(self.rot_plus.parameters()) + list(self.rot_minus.parameters()) + list(self.digits.parameters())
+        params = list(self.front.parameters()) + list(self.right.parameters()) + list(self.up.parameters()) + list(self.dec.parameters()) + list(self.rot_plus.parameters()) + list(self.rot_minus.parameters()) #+ list(self.digits.parameters())
         return params
     
     def save_all_models(self, save_path):
@@ -33,7 +33,7 @@ class LTNModel:
         save_model(self.dec, save_path, "dec")
         save_model(self.rot_plus, save_path, "rot_plus")
         save_model(self.rot_minus, save_path, "rot_minus")
-        save_model(self.digits, save_path, "digits")
+        #save_model(self.digits, save_path, "digits")
     
     def load_model(self, path, model):
         model.load_state_dict(torch.load(path, weights_only=True))
@@ -46,7 +46,7 @@ class LTNModel:
         self.dec = self.load_model(f"{model_path}/{dec}", self.dec)
         self.rot_plus = self.load_model(f"{model_path}/{rot_plus}", self.rot_plus)
         self.rot_minus = self.load_model(f"{model_path}/{rot_minus}", self.rot_minus)
-        self.digits = self.load_model(f"{model_path}/{digits}", self.digits) if digits is not None else self.digits
+        #self.digits = self.load_model(f"{model_path}/{digits}", self.digits) if digits is not None else self.digits
         
 
 

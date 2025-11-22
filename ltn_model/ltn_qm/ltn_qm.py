@@ -17,7 +17,7 @@ class LTNRules:
         self.Dec = ltn.Function(model=self.logic_models.dec)
         self.RotPlus = ltn.Function(model=self.logic_models.rot_plus)
         self.RotMinus = ltn.Function(model=self.logic_models.rot_minus)
-        self.DigitP = ltn.Predicate(model=self.logic_models.digits) #[ltn.Predicate(model=self.logic_models.digits[i]) for i in range(len(self.logic_models.digits))]
+        #self.DigitP = ltn.Predicate(model=self.logic_models.digits) #[ltn.Predicate(model=self.logic_models.digits[i]) for i in range(len(self.logic_models.digits))]
 
         self.decoder_constraints = DecoderRules(self)
         self.encoder_constraints = EncoderRules(self)
