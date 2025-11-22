@@ -9,7 +9,6 @@ import wandb
 from dreamer.utils.utils import save_model
 from ltn_model.ltn_qm.logic_loss import LogicLoss
 
-
 def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_size=32):
     encoder.eval()
     decoder.eval()
@@ -104,7 +103,7 @@ def eval_rollout(dataset, encoder, rssm, decoder, T=5):
 
         return roll_outs
 
-def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model", logic_weight=1.0):
+def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model", logic_weight=15000.0, logic_decay_rate=0.99, train_all=True):
     obs_shape = (3, 128, 128)
     action_dim = 7
     embed_dim = embed_dim
@@ -116,7 +115,6 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     encoder = Encoder(obs_shape, embed_dim).to(device)
     decoder = Decoder(embed_dim, obs_shape).to(device)
     rssm = RSSM(action_dim, stoch_dim, deter_dim, embed_dim).to(device)
-    optim_model = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters()) + list(rssm.parameters()), lr=lr)
     dataset_object = Dataset(obs_shape, action_dim, device, dataset_train_path, dataset_test_path)
     dataset_train = dataset_object.get_dataset_train()
     dataset_test = dataset_object.get_dataset_test()
@@ -129,7 +127,12 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
 
     logic_loss_object = None
     if logic_models_path is not None:
-        logic_loss_object = LogicLoss(logic_models_path, model_name_digits=None)
+        logic_loss_object = LogicLoss(logic_models_path, model_name_digits=None, train_all=train_all)
+    
+    if not train_all:
+        optim_model = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters()) + list(rssm.parameters()), lr=lr)
+    else:
+        optim_model = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters()) + list(rssm.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr)
 
     wandb.login(key=login_key)
     wandb.init(project=project_name)
@@ -150,8 +153,8 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
 
             for t in range(1, T):
                 sample = dataset_train.sample(B, T)
-                obs = sample.observation 
-                actions = sample.action        
+                obs = sample.observation
+                actions = sample.action
                 embed = encoder(obs[:, t-1])
                 prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(stoch, deter, actions[:, t-1], embed)
                 recon_mean = decoder(post_stoch)
@@ -162,7 +165,10 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
                 logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
-                logic_loss_total += logic_loss
+
+                ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) if train_all else 0.
+                
+                logic_loss_total += logic_loss + ltn_loss
                 #print(f"Logic Loss: {logic_loss}, Logic Loss Total:{logic_loss_total}")
                 
                 kld = torch.distributions.kl_divergence(
@@ -177,7 +183,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 kld_loss += kld
                 stoch = post_stoch
 
-            logic_weight = recon_loss.item()
+            #logic_weight = recon_loss.item()
             logic_loss_total = logic_weight*logic_loss_total
             kld_loss = (kld_loss * beta)
             loss = recon_loss + kld_loss + logic_loss_total
@@ -208,6 +214,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         #wandb.log({"Reconstruction Loss": recon_loss.item()})
         #wandb.log({"KLD Loss": kld_loss.item()})
         print(f"Epoch {epoch}: recon_loss={recon_loss.item():.2f}, kld_loss={kld_loss.item():.2f}, Logic loss:{logic_l}")
+        logic_weight = logic_weight*logic_decay_rate
     
     wandb.finish()
     save_model(encoder, epochs, "encoder", model_save_path)
