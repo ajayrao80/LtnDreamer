@@ -91,7 +91,7 @@ def eval_rollout(dataset, encoder, rssm, decoder, T=5):
             reconstructed_image = decoder(post_stoch)
 
             ground_truth_images.append(wandb.Image(sample.observation[0, t]))
-            reconstructed_images.append(wandb.Image(reconstructed_image[0]))
+            reconstructed_images.append(wandb.Image(torch.nn.functional.tanh(reconstructed_image[0]).clamp(0,1)))
 
             stoch_state = post_stoch
             embed=None
