@@ -154,12 +154,12 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             recon_loss = 0.
             logic_loss_total = 0.
 
-            prev_obs = obs[:, 0]
-
+            prev_obs = None
             for t in range(1, T):
                 sample = dataset_train.sample(B, T)
                 obs = sample.observation
                 actions = sample.action
+                prev_obs = obs[:, t-1] if t==1 else prev_obs
                 embed = encoder(obs[:, t-1])
                 prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(stoch, deter, actions[:, t-1], embed)
                 recon_mean = decoder(post_stoch)
