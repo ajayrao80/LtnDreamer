@@ -190,7 +190,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 kld_loss += kld
                 stoch = post_stoch
 
-                prev_obs = recon_mean
+                prev_obs = recon_mean.detach()
 
             #logic_weight = recon_loss.item()
             logic_loss_total = logic_loss_total*logic_weight
