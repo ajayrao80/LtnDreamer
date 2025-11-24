@@ -171,11 +171,12 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 # ---------------------------------------------------------------------------
                 
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
-                logic_loss = logic_loss_object.compute_logic_loss(prev_obs, actions_batch, recon_mean) if logic_models_path is not None else 0.
+                logic_loss_1 = logic_loss_object.compute_logic_loss(prev_obs, actions_batch, recon_mean) if logic_models_path is not None else 0.
+                logic_loss_2 = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
 
                 #ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) if train_all else 0.
                 
-                logic_loss_total += logic_loss #+ ltn_loss
+                logic_loss_total += logic_loss_1 + logic_loss_2 #+ ltn_loss
                 #print(f"Logic Loss: {logic_loss}, Logic Loss Total:{logic_loss_total}")
                 
                 kld = torch.distributions.kl_divergence(
