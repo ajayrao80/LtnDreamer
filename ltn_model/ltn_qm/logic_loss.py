@@ -1,5 +1,6 @@
 from ltn_model.ltn_qm.ltn_qm import LTNRules
 from ltn_model.modules.model import LTNModel
+import torch
 
 class LogicLoss:
     def __init__(self, logic_model_path, model_name_front="front", model_name_right="right", model_name_up="up", model_name_dec="dec", model_name_rot_plus="rot_plus", model_name_rot_minus="rot_minus", model_name_digits="digits", train_all=False):
@@ -17,7 +18,7 @@ class LogicLoss:
         return loss
     
     def get_ltn_predictions(self, input_images, action):
-        ltn_reconstruction_pred = self.LTNObject.decoder_constraints.get_reconstruction_based_on_actions(input_images, action)
+        ltn_reconstruction_pred = torch.nn.functional.tanh(self.LTNObject.decoder_constraints.get_reconstruction_based_on_actions(input_images, action))
         return ltn_reconstruction_pred
     
     def get_logic_parameters(self):

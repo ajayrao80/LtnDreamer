@@ -173,7 +173,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 # ---------------------------------------------------------------------------
 
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
-                
+
                 ltn_pred_prev = logic_loss_object.get_ltn_predictions(ltn_pred_prev, actions_batch) if logic_models_path is not None else None
                 fixed_std = 1.0
                 dist = torch.distributions.Normal(recon_mean, fixed_std)
@@ -205,7 +205,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             #logic_weight = recon_loss.item()
             logic_loss_total = logic_loss_total*logic_weight
             kld_loss = (kld_loss * beta)
-            loss =  kld_loss + logic_loss_total + recon_loss
+            loss =  kld_loss + logic_loss_total + 0.33*recon_loss
             optim_model.zero_grad()
             loss.backward()
             optim_model.step()
