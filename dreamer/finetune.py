@@ -172,13 +172,14 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 #recon_loss += -recon_log_prob
                 # ---------------------------------------------------------------------------
 
+                actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
+                
                 ltn_pred_prev = logic_loss_object.get_ltn_predictions(ltn_pred_prev, actions_batch) if logic_models_path is not None else None
                 fixed_std = 1.0
                 dist = torch.distributions.Normal(recon_mean, fixed_std)
                 recon_log_prob = dist.log_prob(ltn_pred_prev).sum(dim=[1,2,3]).mean()
                 recon_loss += -recon_log_prob
                 
-                actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
                 logic_loss_1 = logic_loss_object.compute_logic_loss(prev_obs, actions_batch, recon_mean) if logic_models_path is not None else 0.
                 logic_loss_2 = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
 
