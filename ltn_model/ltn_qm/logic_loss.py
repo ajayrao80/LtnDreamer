@@ -12,8 +12,13 @@ class LogicLoss:
     
     def compute_logic_loss(self, prev_state, action, next_state):
         sat_val = self.LTNObject.compute_sat(prev_state, action, next_state)
+        
         loss = 1. - sat_val
         return loss
+    
+    def get_ltn_predictions(self, input_images, action):
+        ltn_reconstruction_pred = self.LTNObject.decoder_constraints.get_reconstruction_based_on_actions(input_images, action)
+        return ltn_reconstruction_pred
     
     def get_logic_parameters(self):
         return self.ltn_models.get_params()
