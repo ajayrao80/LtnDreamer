@@ -154,6 +154,8 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             recon_loss = 0.
             logic_loss_total = 0.
 
+            prev_obs = obs[:, 0]
+
             for t in range(1, T):
                 sample = dataset_train.sample(B, T)
                 obs = sample.observation
@@ -169,7 +171,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 # ---------------------------------------------------------------------------
                 
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
-                logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
+                logic_loss = logic_loss_object.compute_logic_loss(prev_obs, actions_batch, recon_mean) if logic_models_path is not None else 0.
 
                 #ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) if train_all else 0.
                 
@@ -187,6 +189,8 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
 
                 kld_loss += kld
                 stoch = post_stoch
+
+                prev_obs = recon_mean
 
             #logic_weight = recon_loss.item()
             logic_loss_total = logic_loss_total*logic_weight
