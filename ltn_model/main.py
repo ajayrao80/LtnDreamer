@@ -4,7 +4,7 @@ import torch
 from torch.utils.data import DataLoader
 import wandb
 
-def getreconstruction(dataloader_test, Front, Right, Up, dec, rot_plus, rot_minus, digits):
+def getreconstruction(dataloader_test, Front, Right, Up, dec, rot_plus, rot_minus, digits=None):
     print("showreconstruction")
     initial_state_img_t, numbers_init_t, action_t, next_state_img_t, numbers_next_t = next(iter(dataloader_test))
     reconstructed = None
@@ -18,9 +18,10 @@ def getreconstruction(dataloader_test, Front, Right, Up, dec, rot_plus, rot_minu
         #right_digit_classification = torch.argmax(torch.tensor([P(right[0].unsqueeze(0)).item() for P in digits])).item()
         #up_digit_classification = torch.argmax(torch.tensor([P(up[0].unsqueeze(0)).item() for P in digits])).item()
 
-        front_digit_classification = digits(front[0].unsqueeze(0)).argmax().item()
-        right_digit_classification = digits(right[0].unsqueeze(0)).argmax().item()
-        up_digit_classification = digits(up[0].unsqueeze(0)).argmax().item()
+        if digits is not None:
+            front_digit_classification = digits(front[0].unsqueeze(0)).argmax().item()
+            right_digit_classification = digits(right[0].unsqueeze(0)).argmax().item()
+            up_digit_classification = digits(up[0].unsqueeze(0)).argmax().item()
 
         if action_t[0].item() == 0:
             decoded = dec(front[0].unsqueeze(0), rot_plus(right[0].unsqueeze(0)), front[0].unsqueeze(0)) 
@@ -41,12 +42,12 @@ def getreconstruction(dataloader_test, Front, Right, Up, dec, rot_plus, rot_minu
             decoded = dec(rot_minus(front[0].unsqueeze(0)), right[0].unsqueeze(0), rot_minus(right[0].unsqueeze(0))) 
             #reconstructed = torch.nn.functional.sigmoid(decoded[0])
     
-    return { "GT_image_1": initial_state_img_t[0], "GT_image_2": next_state_img_t[0], "Reconstruction": torch.nn.functional.tanh(decoded[0]).clamp(0, 1), "front_digit": front_digit_classification, "right_digit": right_digit_classification, "up_digit": up_digit_classification}
+    return { "GT_image_1": initial_state_img_t[0], "GT_image_2": next_state_img_t[0], "Reconstruction": decoded[0]} #, "front_digit": front_digit_classification, "right_digit": right_digit_classification, "up_digit": up_digit_classification}
 
 def log(ltn_obj, dataloader_test, epoch, train_loss=None, train_sat=None):
-    log_dict = getreconstruction(dataloader_test, ltn_obj.logic_models.front, ltn_obj.logic_models.right, ltn_obj.logic_models.up, ltn_obj.logic_models.dec, ltn_obj.logic_models.rot_plus, ltn_obj.logic_models.rot_minus, ltn_obj.logic_models.digits)
-    metrics = { "gt_image_1": wandb.Image(log_dict["GT_image_1"]), "gt_image_2": wandb.Image(log_dict["GT_image_2"]), "reconstruction": wandb.Image(log_dict["Reconstruction"]), 
-                "front_digit": log_dict["front_digit"], "right_digit": log_dict["right_digit"], "up_digit": log_dict["up_digit"], "Epoch": epoch}
+    log_dict = getreconstruction(dataloader_test, ltn_obj.logic_models.front, ltn_obj.logic_models.right, ltn_obj.logic_models.up, ltn_obj.logic_models.dec, ltn_obj.logic_models.rot_plus, ltn_obj.logic_models.rot_minus)#, ltn_obj.logic_models.digits)
+    metrics = { "gt_image_1": wandb.Image(log_dict["GT_image_1"]), "gt_image_2": wandb.Image(log_dict["GT_image_2"]), "reconstruction": wandb.Image(log_dict["Reconstruction"]), "Epoch": epoch } #, 
+               # "front_digit": log_dict["front_digit"], "right_digit": log_dict["right_digit"], "up_digit": log_dict["up_digit"], "Epoch": epoch}
     if train_loss is not None:
         metrics["Loss"] = train_loss
         metrics["Sat"] = train_sat
