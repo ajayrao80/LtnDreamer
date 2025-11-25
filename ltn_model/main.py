@@ -1,5 +1,5 @@
-from ltn_qm.ltn_qm import LTNRules
-from dataset.dataset import get_dataset
+from ltn_model.ltn_qm.ltn_qm import LTNRules
+from ltn_model.dataset.dataset import get_dataset
 import torch
 from torch.utils.data import DataLoader
 import wandb
