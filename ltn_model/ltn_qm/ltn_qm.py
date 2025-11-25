@@ -21,8 +21,8 @@ class LTNRules:
 
         self.decoder_constraints = DecoderRules(self)
         self.encoder_constraints = EncoderRules(self)
-        self.digit_constraints = DigitRules(self)
-        self.num_digit_classes = 10
+        #self.digit_constraints = DigitRules(self)
+        #self.num_digit_classes = 10
     
     def compute_sat(self, init_image, actions_, next_image, digits_labels_init=None, digits_labels_next=None):
         # cube 1 -----------------------------------------------------------
