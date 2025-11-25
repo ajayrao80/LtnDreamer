@@ -9,7 +9,8 @@ class Decoder(nn.Module):
             nn.ReLU(),
             nn.ConvTranspose2d(depth*2, depth*1, kernel_size=ksize+1, stride=stride),
             nn.ReLU(),
-            nn.ConvTranspose2d(depth*1, 3, kernel_size=ksize, stride=stride)
+            nn.ConvTranspose2d(depth*1, 3, kernel_size=ksize, stride=stride),
+            nn.Sigmoid()
         )
     
     def forward(self, fx, rx, ux):
