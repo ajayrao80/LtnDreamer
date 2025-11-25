@@ -174,11 +174,11 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
 
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
 
-                ltn_pred_prev = logic_loss_object.get_ltn_predictions(ltn_pred_prev, actions_batch) if logic_models_path is not None else None
-                fixed_std = 1.0
-                dist = torch.distributions.Normal(recon_mean, fixed_std)
-                recon_log_prob = dist.log_prob(ltn_pred_prev).sum(dim=[1,2,3]).mean()
-                recon_loss += -recon_log_prob
+                #ltn_pred_prev = logic_loss_object.get_ltn_predictions(ltn_pred_prev, actions_batch) if logic_models_path is not None else None
+                #fixed_std = 1.0
+                #dist = torch.distributions.Normal(recon_mean, fixed_std)
+                #recon_log_prob = dist.log_prob(ltn_pred_prev).sum(dim=[1,2,3]).mean()
+                #recon_loss += -recon_log_prob
                 
                 logic_loss_1 = logic_loss_object.compute_logic_loss(prev_obs, actions_batch, recon_mean) if logic_models_path is not None else 0.
                 logic_loss_2 = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
@@ -205,14 +205,14 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             #logic_weight = recon_loss.item()
             logic_loss_total = logic_loss_total*logic_weight
             kld_loss = (kld_loss * beta)
-            loss =  kld_loss + logic_loss_total + 0.33*recon_loss
+            loss =  kld_loss + logic_loss_total #+ 0.33*recon_loss
             optim_model.zero_grad()
             loss.backward()
             optim_model.step()
 
             l += loss.item()
             logic_l += logic_loss_total.item()
-            rl += recon_loss.item()
+            #rl += recon_loss.item()
             kld_l += kld_loss.item()
         
         rollout_metrics = eval_rollout(dataset_test, encoder, rssm, decoder)
@@ -220,7 +220,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         metrics = {
             "Epoch": epoch,
             "Loss": l/total_iterations,
-            "Reconstruction Loss Train": rl/total_iterations,
+            #"Reconstruction Loss Train": rl/total_iterations,
             "Logic Loss Train": logic_l/total_iterations,
             "KLD Loss Train": kld_l/total_iterations,
             "Ground Truth": rollout_metrics["Ground Truth"],
