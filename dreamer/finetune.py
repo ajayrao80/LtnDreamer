@@ -154,14 +154,14 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             recon_loss = 0.
             logic_loss_total = 0.
 
-            prev_obs = None
-            ltn_pred_prev = None
+            #prev_obs = None
+            #ltn_pred_prev = None
             for t in range(1, T):
                 sample = dataset_train.sample(B, T)
                 obs = sample.observation
                 actions = sample.action
-                prev_obs = obs[:, t-1] if t==1 else prev_obs
-                ltn_pred_prev = obs[:, t-1] if t==1 else ltn_pred_prev
+                #prev_obs = obs[:, t-1] if t==1 else prev_obs
+                #ltn_pred_prev = obs[:, t-1] if t==1 else ltn_pred_prev
                 embed = encoder(obs[:, t-1])
                 prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(stoch, deter, actions[:, t-1], embed)
                 recon_mean = decoder(post_stoch)
@@ -180,12 +180,12 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 #recon_log_prob = dist.log_prob(ltn_pred_prev).sum(dim=[1,2,3]).mean()
                 #recon_loss += -recon_log_prob
                 
-                logic_loss_1 = logic_loss_object.compute_logic_loss(prev_obs, actions_batch, recon_mean) if logic_models_path is not None else 0.
+                #logic_loss_1 = logic_loss_object.compute_logic_loss(prev_obs, actions_batch, recon_mean) if logic_models_path is not None else 0. # dreamer auto-regressive loss
                 logic_loss_2 = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
 
                 #ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) if train_all else 0.
                 
-                logic_loss_total += logic_loss_1 + logic_loss_2 #+ ltn_loss
+                logic_loss_total += logic_loss_2 #logic_loss_1 + #+ ltn_loss
                 #print(f"Logic Loss: {logic_loss}, Logic Loss Total:{logic_loss_total}")
                 
                 kld = torch.distributions.kl_divergence(
@@ -200,7 +200,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 kld_loss += kld
                 stoch = post_stoch
 
-                prev_obs = recon_mean.detach()
+                #prev_obs = recon_mean.detach()
 
             #logic_weight = recon_loss.item()
             logic_loss_total = logic_loss_total*logic_weight
