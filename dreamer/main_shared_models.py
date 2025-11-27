@@ -10,7 +10,9 @@ from dreamer.utils.utils import save_model
 from ltn_model.ltn_qm.logic_loss import LogicLoss
 
 def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_size=32):
-    encoder.eval()
+    logic_loss_object.ltn_models.front.eval()
+    logic_loss_object.ltn_models.right.eval()
+    logic_loss_object.ltn_models.up.eval() #encoder.eval()
     decoder.eval()
     rssm.eval()
     sample = dataset.sample(batch_size, T)
@@ -31,7 +33,7 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_siz
         stoch = torch.zeros(B, stoch_dim, device=device)
 
         for t in range(1, T):
-            embed = encoder(obs[:, t-1])
+            embed = encoder(obs[:, t-1], logic_loss_object.ltn_models) 
             prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(
                 stoch, deter, actions[:, t-1], embed)
             
@@ -61,13 +63,13 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_siz
 
     return metrics
 
-def eval_rollout(dataset, encoder, rssm, decoder, T=5):
+def eval_rollout(dataset, encoder, rssm, decoder, logic_loss_object, T=5):
     with torch.no_grad():
         sample = dataset.sample(1, T)
         initial_obs = sample.observation[0, 0].unsqueeze(0)
         action_seq = sample.action
         # Get embedding from encoder
-        embed = encoder(initial_obs)  # [B, embed_dim]
+        embed = encoder(initial_obs, logic_loss_object.ltn_models)  # [B, embed_dim]
 
         B = initial_obs.size(0)
         device = initial_obs.device
@@ -214,7 +216,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             rl += recon_loss.item()
             kld_l += kld_loss.item()
         
-        rollout_metrics = eval_rollout(dataset_test, encoder, rssm, decoder)
+        rollout_metrics = eval_rollout(dataset_test, encoder, rssm, decoder, logic_loss_object)
         loss_metrics = eval_loss(dataset_test, encoder, rssm, decoder, logic_loss_object)
         ltn_predictions = get_ltn_predictions(dataset_test, logic_loss_object)
 
