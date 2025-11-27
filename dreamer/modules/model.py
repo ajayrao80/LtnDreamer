@@ -5,7 +5,7 @@ import torch.nn.functional as F
 class RSSM(nn.Module):
     def __init__(self, action_dim=7, stoch_dim=60, determ_dim=400, embed_dim=1024):
         super().__init__()
-        self.rnn= nn.GRUCell(stoch_dim + action_dim, determ_dim)
+        self.rnn = nn.GRUCell(stoch_dim + action_dim, determ_dim)
         self.fc_prior = nn.Linear(determ_dim, 2*stoch_dim)
         self.fc_post = nn.Linear(determ_dim + embed_dim, 2 * stoch_dim)
     

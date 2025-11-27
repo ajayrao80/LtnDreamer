@@ -11,3 +11,6 @@ SatAgg = ltn.fuzzy_ops.SatAgg()
 Or = ltn.Connective(ltn.fuzzy_ops.OrProbSum())
 Sim = ltn.Predicate(func=lambda x, y: cosine_similarity(x, y))
 Eq = ltn.Predicate(func=lambda x, y: torch.exp(-torch.norm(x - y, dim=1))) 
+
+
+
