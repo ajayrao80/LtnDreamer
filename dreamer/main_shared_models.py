@@ -109,6 +109,15 @@ def encoder(obs, logic_models):
     up = logic_models.up(obs)
     return torch.cat([front, right, up], dim=1).flatten(1)
 
+def get_ltn_predictions(dataset, logic_loss_object, T=5):
+    with torch.no_grad():
+        sample = dataset.sample(1, T)
+        initial_obs = sample.observation[0, 0].unsqueeze(0)
+        action = sample.action[0, 0].unsqueeze(0)
+
+        ltn_reconstruction_pred = logic_loss_object.get_ltn_predictions(initial_obs, action)
+        return {"LTN Reconstruction": wandb.Image(ltn_reconstruction_pred[0]), "Ground Truth": wandb.Image(sample.observation[0, 1])}
+
 def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model", logic_weight=15000.0, logic_decay_rate=1.0, train_all=True, batch_size=32):
     obs_shape = (3, 128, 128)
     action_dim = 7
@@ -207,6 +216,8 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         
         rollout_metrics = eval_rollout(dataset_test, encoder, rssm, decoder)
         loss_metrics = eval_loss(dataset_test, encoder, rssm, decoder, logic_loss_object)
+        ltn_predictions = get_ltn_predictions(dataset_test, logic_loss_object)
+
         metrics = {
             "Epoch": epoch,
             "Loss": l/total_iterations,
@@ -217,7 +228,9 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             "Imagination": rollout_metrics["Imagination"],
             "Reconstruction Loss Test": loss_metrics["reconstruction_logprob"],
             "KLD Loss Test": loss_metrics["kl_loss"],
-            "Logic Loss Test": loss_metrics["logic_loss"]
+            "Logic Loss Test": loss_metrics["logic_loss"],
+            "LTN Predictions": ltn_predictions["LTN Reconstruction"],
+            "LTN Ground Truth": ltn_predictions["Ground Truth"]
         }
         wandb.log(metrics)
         #wandb.log({"Reconstruction Loss": recon_loss.item()})
