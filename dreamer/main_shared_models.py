@@ -116,6 +116,7 @@ def get_ltn_predictions(dataset, logic_loss_object, T=5):
         sample = dataset.sample(1, T)
         initial_obs = sample.observation[0, 0].unsqueeze(0)
         action = sample.action[0, 0].unsqueeze(0)
+        action = action.max(dim=1, keepdim=True).values.squeeze(1)
 
         ltn_reconstruction_pred = logic_loss_object.get_ltn_predictions(initial_obs, action)
         return {"LTN Reconstruction": wandb.Image(ltn_reconstruction_pred[0]), "Ground Truth": wandb.Image(sample.observation[0, 1])}
