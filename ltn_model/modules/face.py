@@ -14,9 +14,9 @@ class Face(nn.Module):
         )
 
         self.flatten = nn.Flatten()
-        self.fc_mu = nn.Linear(embed_dim, 1024)
-        self.fc_logvar = nn.Linear(embed_dim, 1024)
-        self.proj = nn.Linear(1024, embed_dim)
+        self.fc_mu = nn.Linear(embed_dim, 128)
+        self.fc_logvar = nn.Linear(embed_dim, 128)
+        self.proj = nn.Linear(128, embed_dim)
     
     def forward(self, x):
         out = self.conv_network(x)
