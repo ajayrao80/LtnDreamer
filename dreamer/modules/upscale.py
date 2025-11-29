@@ -5,11 +5,11 @@ class UpscaleNetwork(nn.Module):
     def __init__(self, upscale_dim=3*128*128):
         super().__init__()
         self.upscale = nn.Sequential(
-            nn.Linear(200, upscale_dim/4),
+            nn.Linear(200, 12500),
             nn.ReLU(),
-            nn.Linear(upscale_dim/4, upscale_dim/2),
+            nn.Linear(12500, 25000),
             nn.ReLU(),
-            nn.Linear(upscale_dim/2, upscale_dim) 
+            nn.Linear(25000, upscale_dim) 
         )
 
     def forward(self, x):
