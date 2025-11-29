@@ -10,7 +10,7 @@ import wandb
 from dreamer.utils.utils import save_model
 from ltn_model.ltn_qm.logic_loss import LogicLoss
 
-def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_size=32):
+def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, upscale_network, T=5, batch_size=32):
     logic_loss_object.ltn_models.front.eval()
     logic_loss_object.ltn_models.right.eval()
     logic_loss_object.ltn_models.up.eval() #encoder.eval()
@@ -38,8 +38,8 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_siz
             prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(
                 stoch, deter, actions[:, t-1], embed)
             
-            upscaled_post_stoch = logic_loss_object.ltn_models.upscale(post_stoch)
-            mean = decoder(upscaled_post_stoch) #mean = decoder(post_stoch)
+            upscaled_post_stoch = upscale_network(post_stoch)
+            mean = decoder(logic_loss_object.ltn_models.front(upscaled_post_stoch), logic_loss_object.ltn_models.right(upscaled_post_stoch), logic_loss_object.ltn_models.up(upscaled_post_stoch)) #mean = decoder(post_stoch)
             dist = torch.distributions.Normal(mean, 1.0)  # Decoder returns mean
             log_prob = -dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()  # Per batch
             
@@ -155,7 +155,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     decoder = logic_loss_object.ltn_models.dec if logic_loss_object is not None else Decoder(stoch_dim, obs_shape).to(device)
     
     if not train_all:
-        optim_model = torch.optim.Adam(list(rssm.parameters()), lr=lr) # list(decoder.parameters()) + #list(encoder.parameters()) + 
+        optim_model = torch.optim.Adam(list(rssm.parameters()) + list(upscale_network.parameters()), lr=lr) # list(decoder.parameters()) + #list(encoder.parameters()) + 
     else:
         optim_model = torch.optim.Adam(list(decoder.parameters()) + list(rssm.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) #list(encoder.parameters()) + 
 
@@ -226,7 +226,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             kld_l += kld_loss.item()
         
         rollout_metrics = eval_rollout(dataset_test, encoder, rssm, decoder, logic_loss_object, upscale_network)
-        loss_metrics = eval_loss(dataset_test, encoder, rssm, decoder, logic_loss_object)
+        loss_metrics = eval_loss(dataset_test, encoder, rssm, decoder, logic_loss_object, upscale_network)
         ltn_predictions = get_ltn_predictions(dataset_test, logic_loss_object)
 
         metrics = {
