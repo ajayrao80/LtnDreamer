@@ -193,11 +193,11 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) if train_all else 0.
 
                 #if epoch >= epochs//2:
-                #    logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
+                logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
                 #else:
                 #    logic_loss = 0.
                 
-                logic_loss_total += ltn_loss #logic_loss + 
+                logic_loss_total += ltn_loss + logic_loss 
                 #print(f"Logic Loss: {logic_loss}, Logic Loss Total:{logic_loss_total}")
                 
                 kld = torch.distributions.kl_divergence(
