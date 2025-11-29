@@ -155,9 +155,9 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     decoder = logic_loss_object.ltn_models.dec if logic_loss_object is not None else Decoder(stoch_dim, obs_shape).to(device)
     
     if not train_all:
-        optim_model = torch.optim.Adam(list(rssm.parameters()) + list(upscale_network.parameters()), lr=lr) # list(decoder.parameters()) + #list(encoder.parameters()) + 
+        optim_model = torch.optim.Adam(list(rssm.parameters()), lr=lr) # list(decoder.parameters()) + #list(encoder.parameters()) + 
     else:
-        optim_model = torch.optim.Adam(list(decoder.parameters()) + list(rssm.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) #list(encoder.parameters()) + 
+        optim_model = torch.optim.Adam(list(upscale_network.parameters()) + list(rssm.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) #list(encoder.parameters()) + list(decoder.parameters())
 
     wandb.login(key=login_key)
     wandb.init(project=project_name)
