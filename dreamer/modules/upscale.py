@@ -10,6 +10,7 @@ class UpscaleNetwork(nn.Module):
             nn.Linear(upscale_dim/4, upscale_dim/2),
             nn.ReLU(),
             nn.Linear(upscale_dim/2, upscale_dim) 
+        )
 
     def forward(self, x):
         x = self.upscale(x)
