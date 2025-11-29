@@ -38,7 +38,8 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_siz
             prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(
                 stoch, deter, actions[:, t-1], embed)
             
-            mean = decoder(post_stoch)
+            upscaled_post_stoch = logic_loss_object.ltn_models.upscale(post_stoch)
+            mean = decoder(upscaled_post_stoch) #mean = decoder(post_stoch)
             dist = torch.distributions.Normal(mean, 1.0)  # Decoder returns mean
             log_prob = -dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()  # Per batch
             
