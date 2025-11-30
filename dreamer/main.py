@@ -9,7 +9,7 @@ import wandb
 from dreamer.utils.utils import save_model
 from ltn_model.ltn_qm.logic_loss import LogicLoss
 
-def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, T=5, batch_size=32):
+def eval_loss(dataset, encoder, rssm, decoder, T=5, batch_size=32): #logic_loss_object
     encoder.eval()
     decoder.eval()
     rssm.eval()
@@ -132,7 +132,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     if not train_all:
         optim_model = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters()) + list(rssm.parameters()), lr=lr)
     else:
-        optim_model = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters()) + list(rssm.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr)
+        optim_model = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters()) + list(rssm.parameters())) # + logic_loss_object.get_logic_parameters(), lr=lr)
 
     wandb.login(key=login_key)
     wandb.init(project=project_name)
@@ -201,7 +201,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             kld_l += kld_loss.item()
         
         rollout_metrics = eval_rollout(dataset_test, encoder, rssm, decoder)
-        loss_metrics = eval_loss(dataset_test, encoder, rssm, decoder, logic_loss_object)
+        loss_metrics = eval_loss(dataset_test, encoder, rssm, decoder) #, logic_loss_object)
         metrics = {
             "Epoch": epoch,
             "Loss": l/total_iterations,
@@ -217,8 +217,8 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         wandb.log(metrics)
         #wandb.log({"Reconstruction Loss": recon_loss.item()})
         #wandb.log({"KLD Loss": kld_loss.item()})
-        print(f"Epoch {epoch}: recon_loss={recon_loss.item():.2f}, kld_loss={kld_loss.item():.2f}, Logic loss:{logic_l}")
-        logic_weight = logic_weight*logic_decay_rate
+        print(f"Epoch {epoch}: recon_loss={recon_loss.item():.2f}, kld_loss={kld_loss.item():.2f}") #, Logic loss:{logic_l}")
+        #logic_weight = logic_weight*logic_decay_rate
     
     wandb.finish()
     save_model(encoder, epochs, "encoder", model_save_path)
