@@ -42,8 +42,8 @@ def eval_loss(dataset, dynamics_model, decoder, logic_loss_object, T=5, batch_si
 
 def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5):
     with torch.no_grad():
-        sample = dataset.sample(1, T)
-        initial_obs = sample.observation[0, 0].unsqueeze(0)
+        sample = dataset.sample(2, T)
+        initial_obs = sample.observation
         action_seq = sample.action
         
         B = initial_obs.size(0)
@@ -52,15 +52,15 @@ def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5):
         ground_truth_images = [wandb.Image(sample.observation[0, 0])]
         reconstructed_images = []
 
-        state = torch.zeros(B, initial_obs.shape[1], initial_obs.shape[2], initial_obs.shape[3]).to(device)
+        state = torch.zeros(1, initial_obs.shape[1], initial_obs.shape[2], initial_obs.shape[3]).to(device)
         
         for t in range(1, T):
-            actions = action_seq[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
-            state = dynamics_model(state, initial_obs[t-1], actions[t-1].unsqueeze(0))    
+            actions = action_seq[0, t-1].max(dim=1, keepdim=True).values.squeeze(1)
+            state = dynamics_model(state, initial_obs[:, t-1], actions[0, t-1].unsqueeze(1))    
             reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
             
             ground_truth_images.append(wandb.Image(sample.observation[0, t]))
-            reconstructed_images.append(wandb.Image(reconstructed_image[0]))
+            reconstructed_images.append(wandb.Image(reconstructed_image[0][0]))
 
         roll_outs = {
             "Ground Truth": ground_truth_images,
@@ -101,6 +101,12 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
     decoder = logic_loss_object.ltn_models.dec
 
     optim_model = torch.optim.Adam(list(dynamics_model.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) 
+
+    eval_loss(dataset_test, dynamics_model, decoder, logic_loss_object, T=5, batch_size=32, obs_shape=(3, 128, 128), device="cuda") 
+    #eval_rollout(dataset_test, dynamics_model, decoder, logic_loss_object)
+
+    return
+
 
     wandb.login(key=login_key)
     wandb.init(project=project_name)
