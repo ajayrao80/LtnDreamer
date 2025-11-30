@@ -13,7 +13,7 @@ class Decoder(nn.Module):
             nn.ConvTranspose2d(128, 64, 5, 2), nn.ReLU(),
             nn.ConvTranspose2d(64, 32, 6, 2), nn.ReLU(),
             nn.ConvTranspose2d(32, 32, 6, 2), nn.ReLU(),
-            nn.ConvTranspose2d(32, c, 2, 2) 
+            nn.ConvTranspose2d(32, c, 2, 2), nn.Sigmoid() 
         )
     
     def forward(self, h):
