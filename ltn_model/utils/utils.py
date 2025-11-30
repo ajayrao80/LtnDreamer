@@ -63,7 +63,7 @@ def cosine_similarity(A, B):
     norm_B = torch.norm(B_flat, dim=1)
     
     similarity = ((dot_product / (norm_A * norm_B)) + 1.0)/2.0
-    return similarity
+    return torch.nn.functional.sigmoid(similarity)
 
 def save_model(model, path, name):
     torch.save(model.state_dict(), f"{path}/{name}")
