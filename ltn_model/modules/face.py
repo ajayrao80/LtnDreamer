@@ -20,6 +20,8 @@ class Face(nn.Module):
     
     def forward(self, x):
         out = self.conv_network(x)
+        if len(out.shape) == 3:
+            out = out.unsqueeze(0)
         _, c, h, w = out.shape
         out = self.flatten(out)
         mu = self.fc_mu(out)
