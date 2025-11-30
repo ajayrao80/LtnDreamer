@@ -38,7 +38,7 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, upscale_networ
             prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(
                 stoch, deter, actions[:, t-1], embed)
             
-            upscaled_post_stoch = upscale_network(post_stoch)
+            upscaled_post_stoch, scalar = upscale_network(post_stoch)
             mean = decoder(logic_loss_object.ltn_models.front(upscaled_post_stoch), logic_loss_object.ltn_models.right(upscaled_post_stoch), logic_loss_object.ltn_models.up(upscaled_post_stoch)) #mean = decoder(post_stoch)
             dist = torch.distributions.Normal(mean, 1.0)  # Decoder returns mean
             log_prob = -dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()  # Per batch
@@ -92,7 +92,7 @@ def eval_rollout(dataset, encoder, rssm, decoder, logic_loss_object, upscale_net
                 stoch_state, deter_state, action_seq[:, t-1], embed=embed  
             )
 
-            upscaled_post_stoch = upscale_network(post_stoch)
+            upscaled_post_stoch, scalar = upscale_network(post_stoch)
             reconstructed_image = decoder(logic_loss_object.ltn_models.front(upscaled_post_stoch), logic_loss_object.ltn_models.right(upscaled_post_stoch), logic_loss_object.ltn_models.up(upscaled_post_stoch))
             #reconstructed_image = decoder(post_stoch)
 
@@ -125,7 +125,7 @@ def get_ltn_predictions(dataset, logic_loss_object, T=5):
         ltn_reconstruction_pred = logic_loss_object.get_ltn_predictions(initial_obs, action)
         return {"LTN Reconstruction": wandb.Image(ltn_reconstruction_pred[0]), "Ground Truth": wandb.Image(sample.observation[0, 1])}
 
-def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model", logic_weight=25000.0, logic_decay_rate=1.0, train_all=True, batch_size=32):
+def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model", logic_weight=100.0, logic_decay_rate=1.0, train_all=True, batch_size=32):
     obs_shape = (3, 128, 128)
     action_dim = 7
     embed_dim = embed_dim
@@ -182,12 +182,14 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 actions = sample.action
                 embed = encoder(obs[:, t-1], logic_loss_object.ltn_models)  # Updated encoder with logic models
                 prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(stoch, deter, actions[:, t-1], embed)
-                upscaled_post_stoch = upscale_network(post_stoch)
+                upscaled_post_stoch, scalar = upscale_network(post_stoch)
                 recon_mean = decoder(logic_loss_object.ltn_models.front(upscaled_post_stoch), logic_loss_object.ltn_models.right(upscaled_post_stoch), logic_loss_object.ltn_models.up(upscaled_post_stoch)) #recon_mean = decoder(post_stoch)
+                """
                 fixed_std = 1.0
                 dist = torch.distributions.Normal(recon_mean, fixed_std)
                 recon_log_prob = dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()
                 recon_loss += -recon_log_prob
+                """
                 
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
                 ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) if train_all else 0.
@@ -215,7 +217,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             #logic_weight = recon_loss.item()
             logic_loss_total = logic_weight*logic_loss_total
             kld_loss = (kld_loss * beta)
-            loss = recon_loss + kld_loss + logic_loss_total
+            loss = kld_loss + logic_loss_total # recon_loss
             optim_model.zero_grad()
             loss.backward()
             optim_model.step()
@@ -232,12 +234,12 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         metrics = {
             "Epoch": epoch,
             "Loss": l/total_iterations,
-            "Reconstruction Loss Train": rl/total_iterations,
+            #"Reconstruction Loss Train": rl/total_iterations,
             "Logic Loss Train": logic_l/total_iterations,
             "KLD Loss Train": kld_l/total_iterations,
             "Ground Truth": rollout_metrics["Ground Truth"],
             "Imagination": rollout_metrics["Imagination"],
-            "Reconstruction Loss Test": loss_metrics["reconstruction_logprob"],
+            #"Reconstruction Loss Test": loss_metrics["reconstruction_logprob"],
             "KLD Loss Test": loss_metrics["kl_loss"],
             "Logic Loss Test": loss_metrics["logic_loss"],
             "LTN Predictions": ltn_predictions["LTN Reconstruction"],

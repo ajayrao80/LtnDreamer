@@ -15,8 +15,9 @@ class LTNRules:
         self.Right = ltn.Function(model=self.logic_models.right)
         self.Up = ltn.Function(model=self.logic_models.up)
         self.Dec = ltn.Function(model=self.logic_models.dec)
-        self.RotPlus = ltn.Function(model=self.logic_models.rot_plus)
-        self.RotMinus = ltn.Function(model=self.logic_models.rot_minus)
+        self.RotChange = ltn.Function(model=self.logic_models.rot_change)
+        #self.RotPlus = ltn.Function(model=self.logic_models.rot_plus)
+        #self.RotMinus = ltn.Function(model=self.logic_models.rot_minus)
         #self.DigitP = ltn.Predicate(model=self.logic_models.digits) #[ltn.Predicate(model=self.logic_models.digits[i]) for i in range(len(self.logic_models.digits))]
 
         self.decoder_constraints = DecoderRules(self)
@@ -26,23 +27,30 @@ class LTNRules:
     
     def compute_sat(self, init_image, actions_, next_image, digits_labels_init=None, digits_labels_next=None):
         # cube 1 -----------------------------------------------------------
-        init_image_a_0 = ltn.Variable("init_image_a_0", init_image[actions_ == 0]) if init_image[actions_ == 0].shape[0] != 0 else None
-        init_image_a_1 = ltn.Variable("init_image_a_1", init_image[actions_ == 1]) if init_image[actions_ == 1].shape[0] != 0 else None
-        init_image_a_2 = ltn.Variable("init_image_a_2", init_image[actions_ == 2]) if init_image[actions_ == 2].shape[0] != 0 else None
-        init_image_a_3 = ltn.Variable("init_image_a_3", init_image[actions_ == 3]) if init_image[actions_ == 3].shape[0] != 0 else None
-        init_image_a_4 = ltn.Variable("init_image_a_4", init_image[actions_ == 4]) if init_image[actions_ == 4].shape[0] != 0 else None
-        init_image_a_5 = ltn.Variable("init_image_a_5", init_image[actions_ == 5]) if init_image[actions_ == 5].shape[0] != 0 else None
+        init_image_a_0 = ltn.Variable("init_image_a_0", init_image[actions_.squeeze(1) == 0]) if init_image[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        init_image_a_1 = ltn.Variable("init_image_a_1", init_image[actions_.squeeze(1) == 1]) if init_image[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        init_image_a_2 = ltn.Variable("init_image_a_2", init_image[actions_.squeeze(1) == 2]) if init_image[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        init_image_a_3 = ltn.Variable("init_image_a_3", init_image[actions_.squeeze(1) == 3]) if init_image[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        init_image_a_4 = ltn.Variable("init_image_a_4", init_image[actions_.squeeze(1) == 4]) if init_image[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        init_image_a_5 = ltn.Variable("init_image_a_5", init_image[actions_.squeeze(1) == 5]) if init_image[actions_.squeeze(1) == 5].shape[0] != 0 else None
 
         # cube 2 -----------------------------------------------------------
-        next_image_a_0 = ltn.Variable("next_image_a_0", next_image[actions_ == 0]) if next_image[actions_ == 0].shape[0] != 0 else None
-        next_image_a_1 = ltn.Variable("next_image_a_1", next_image[actions_ == 1]) if next_image[actions_ == 1].shape[0] != 0 else None
-        next_image_a_2 = ltn.Variable("next_image_a_2", next_image[actions_ == 2]) if next_image[actions_ == 2].shape[0] != 0 else None
-        next_image_a_3 = ltn.Variable("next_image_a_3", next_image[actions_ == 3]) if next_image[actions_ == 3].shape[0] != 0 else None
-        next_image_a_4 = ltn.Variable("next_image_a_4", next_image[actions_ == 4]) if next_image[actions_ == 4].shape[0] != 0 else None
-        next_image_a_5 = ltn.Variable("next_image_a_5", next_image[actions_ == 5]) if next_image[actions_ == 5].shape[0] != 0 else None
+        next_image_a_0 = ltn.Variable("next_image_a_0", next_image[actions_.squeeze(1) == 0]) if next_image[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        next_image_a_1 = ltn.Variable("next_image_a_1", next_image[actions_.squeeze(1) == 1]) if next_image[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        next_image_a_2 = ltn.Variable("next_image_a_2", next_image[actions_.squeeze(1) == 2]) if next_image[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        next_image_a_3 = ltn.Variable("next_image_a_3", next_image[actions_.squeeze(1) == 3]) if next_image[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        next_image_a_4 = ltn.Variable("next_image_a_4", next_image[actions_.squeeze(1) == 4]) if next_image[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        next_image_a_5 = ltn.Variable("next_image_a_5", next_image[actions_.squeeze(1) == 5]) if next_image[actions_.squeeze(1) == 5].shape[0] != 0 else None
 
-        reconstruction_axioms_based_on_actions_1 = self.get_encoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
-        reconstruction_axioms_based_on_actions_2 = self.get_decoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
+
+        actions_a_0 = ltn.Variable("actions_a_0", actions_[actions_.squeeze(1) == 0]) if actions_[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        actions_a_1 = ltn.Variable("actions_a_1", actions_[actions_.squeeze(1) == 1]) if actions_[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        actions_a_2 = ltn.Variable("actions_a_2", actions_[actions_.squeeze(1) == 2]) if actions_[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        actions_a_3 = ltn.Variable("actions_a_3", actions_[actions_.squeeze(1) == 3]) if actions_[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        actions_a_4 = ltn.Variable("actions_a_4", actions_[actions_.squeeze(1) == 4]) if actions_[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        actions_a_5 = ltn.Variable("actions_a_5", actions_[actions_.squeeze(1) == 5]) if actions_[actions_.squeeze(1) == 5].shape[0] != 0 else None
+        reconstruction_axioms_based_on_actions_1 = self.get_encoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5)
+        reconstruction_axioms_based_on_actions_2 = self.get_decoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5)
 
         if digits_labels_init is not None:
             init_image_ = ltn.Variable("init_image_", init_image)
@@ -66,25 +74,25 @@ class LTNRules:
         #print(f"sat agg: {sat_agg}")
         return sat_agg   
 
-    def get_encoder_rules(self, init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5):
-        rule_1 = self.encoder_constraints.EncoderRuleA0(init_image_a_0, next_image_a_0) if init_image_a_0 is not None else None  
-        rule_2 = self.encoder_constraints.EncoderRuleA1(init_image_a_1, next_image_a_1) if init_image_a_1 is not None else None  
-        rule_3 = self.encoder_constraints.EncoderRuleA2(init_image_a_2, next_image_a_2) if init_image_a_2 is not None else None  
-        rule_4 = self.encoder_constraints.EncoderRuleA3(init_image_a_3, next_image_a_3) if init_image_a_3 is not None else None  
-        rule_5 = self.encoder_constraints.EncoderRuleA4(init_image_a_4, next_image_a_4) if init_image_a_4 is not None else None  
-        rule_6 = self.encoder_constraints.EncoderRuleA5(init_image_a_5, next_image_a_5) if init_image_a_5 is not None else None  
+    def get_encoder_rules(self, init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5):
+        rule_1 = self.encoder_constraints.EncoderRuleA0(init_image_a_0, next_image_a_0, actions_a_0) if init_image_a_0 is not None else None  
+        rule_2 = self.encoder_constraints.EncoderRuleA1(init_image_a_1, next_image_a_1, actions_a_1) if init_image_a_1 is not None else None  
+        rule_3 = self.encoder_constraints.EncoderRuleA2(init_image_a_2, next_image_a_2, actions_a_2) if init_image_a_2 is not None else None  
+        rule_4 = self.encoder_constraints.EncoderRuleA3(init_image_a_3, next_image_a_3, actions_a_3) if init_image_a_3 is not None else None  
+        rule_5 = self.encoder_constraints.EncoderRuleA4(init_image_a_4, next_image_a_4, actions_a_4) if init_image_a_4 is not None else None  
+        rule_6 = self.encoder_constraints.EncoderRuleA5(init_image_a_5, next_image_a_5, actions_a_5) if init_image_a_5 is not None else None  
 
         rules = [rule_1, rule_2, rule_3, rule_4, rule_5, rule_6]
         rules = [rule for rule in rules if rule is not None]
         return rules
 
-    def get_decoder_rules(self, init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5):
-        rule_1 = self.decoder_constraints.DecoderRuleA0(init_image_a_0, next_image_a_0) if init_image_a_0 is not None else None  
-        rule_2 = self.decoder_constraints.DecoderRuleA1(init_image_a_1, next_image_a_1) if init_image_a_1 is not None else None  
-        rule_3 = self.decoder_constraints.DecoderRuleA2(init_image_a_2, next_image_a_2) if init_image_a_2 is not None else None  
-        rule_4 = self.decoder_constraints.DecoderRuleA3(init_image_a_3, next_image_a_3) if init_image_a_3 is not None else None  
-        rule_5 = self.decoder_constraints.DecoderRuleA4(init_image_a_4, next_image_a_4) if init_image_a_4 is not None else None  
-        rule_6 = self.decoder_constraints.DecoderRuleA5(init_image_a_5, next_image_a_5) if init_image_a_5 is not None else None  
+    def get_decoder_rules(self, init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5):
+        rule_1 = self.decoder_constraints.DecoderRuleA0(init_image_a_0, next_image_a_0, actions_a_0) if init_image_a_0 is not None else None  
+        rule_2 = self.decoder_constraints.DecoderRuleA1(init_image_a_1, next_image_a_1, actions_a_1) if init_image_a_1 is not None else None  
+        rule_3 = self.decoder_constraints.DecoderRuleA2(init_image_a_2, next_image_a_2, actions_a_2) if init_image_a_2 is not None else None  
+        rule_4 = self.decoder_constraints.DecoderRuleA3(init_image_a_3, next_image_a_3, actions_a_3) if init_image_a_3 is not None else None  
+        rule_5 = self.decoder_constraints.DecoderRuleA4(init_image_a_4, next_image_a_4, actions_a_4) if init_image_a_4 is not None else None  
+        rule_6 = self.decoder_constraints.DecoderRuleA5(init_image_a_5, next_image_a_5, actions_a_5) if init_image_a_5 is not None else None  
 
         rules = [rule_1, rule_2, rule_3, rule_4, rule_5, rule_6]
         rules = [rule for rule in rules if rule is not None]

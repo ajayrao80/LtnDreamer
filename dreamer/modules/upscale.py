@@ -12,7 +12,11 @@ class UpscaleNetwork(nn.Module):
             nn.Linear(25000, upscale_dim) 
         )
 
+        self.scalar_head = nn.Linear(200, 1)
+
     def forward(self, x):
-        x = self.upscale(x)
-        x = x.view(-1, 3, 128, 128)
-        return x
+        out = self.upscale(x)
+        out = out.view(-1, 3, 128, 128)
+
+        scalar = self.scalar_head(x)
+        return out, scalar
