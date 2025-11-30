@@ -125,9 +125,9 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     beta = beta
     #login_key = login_key
 
-    logic_loss_object = None
-    if logic_models_path is not None:
-        logic_loss_object = LogicLoss(logic_models_path, model_name_digits=None, train_all=train_all)
+    #logic_loss_object = None
+    #if logic_models_path is not None:
+    #    logic_loss_object = LogicLoss(logic_models_path, model_name_digits=None, train_all=train_all)
     
     if not train_all:
         optim_model = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters()) + list(rssm.parameters()), lr=lr)
