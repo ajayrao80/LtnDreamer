@@ -14,8 +14,15 @@ class DynamicsModel(nn.Module):
                 nn.Linear(512, 6*self.embed_dim)
             )
         
+        self.summary = nn.Sequential(
+            nn.Linear(6*self.embed_dim, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 512),
+            nn.ReLU(),
+            nn.Linear(512, self.embed_dim)
+        )
         self.upscale_network = nn.Sequential(
-            nn.Linear(6*self.embed_dim, 12500),
+            nn.Linear(self.embed_dim, 12500),
             nn.ReLU(),
             nn.Linear(12500, 25000),
             nn.ReLU(),
@@ -34,6 +41,7 @@ class DynamicsModel(nn.Module):
         rot_change_up = self.logic_model.rot_change(up, action.unsqueeze(1))
         x = torch.cat([rot_change_front.flatten(start_dim=1), rot_change_right.flatten(start_dim=1), rot_change_up.flatten(start_dim=1), prev_front.flatten(start_dim=1), prev_right.flatten(start_dim=1), prev_up.flatten(start_dim=1), action.unsqueeze(1)], dim=-1)
         out = self.network(x)
+        out = self.summary(out)
         out = self.upscale_network(out)
         out = out.view(-1, *obs.shape)
         return out.squeeze(0)
