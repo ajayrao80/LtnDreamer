@@ -180,8 +180,6 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             obs = sample.observation
             actions = sample.action
                 
-            for t in range(1, T):
-
             sample = dataset_train.sample(B, T)
             obs = sample.observation    
             for t in range(1, T):

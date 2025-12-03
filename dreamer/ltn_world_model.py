@@ -40,7 +40,7 @@ def eval_loss(dataset, dynamics_model, decoder, logic_loss_object, T=5, batch_si
 
     return metrics
 
-def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5):
+def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5, obs_shape=(3, 128, 128)):
     with torch.no_grad():
         sample = dataset.sample(2, T)
         initial_obs = sample.observation
@@ -52,10 +52,10 @@ def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5):
         ground_truth_images = [wandb.Image(sample.observation[0, 0])]
         reconstructed_images = []
 
-        state = torch.zeros(1, initial_obs.shape[1], initial_obs.shape[2], initial_obs.shape[3]).to(device)
+        state = torch.zeros(B, obs_shape[0], obs_shape[1], obs_shape[2]).to(device)
         
         for t in range(1, T):
-            actions = action_seq[:, t-1].max(dim=0, keepdim=True).values #.squeeze(1)
+            actions = action_seq[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
             state = dynamics_model(state, initial_obs[:, t-1], actions) #[0, t-1].unsqueeze(1))    
             reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
             
@@ -99,6 +99,10 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
     logic_loss_object = LogicLoss(logic_models_path, model_name_digits=None, train_all=train_all)
     dynamics_model = DynamicsModel(embed_dim, logic_model=logic_loss_object.ltn_models if logic_loss_object is not None else None, obs_shape=obs_shape, action_dim=action_dim).to(device)
     decoder = logic_loss_object.ltn_models.dec
+
+    eval_rollout(dataset_test, dynamics_model, decoder, logic_loss_object)
+
+    return 
 
     optim_model = torch.optim.Adam(list(dynamics_model.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) 
 
