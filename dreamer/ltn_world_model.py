@@ -133,7 +133,7 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
             l += loss.item()
             
         rollout_metrics = eval_rollout(dataset_test, dynamics_model, decoder, logic_loss_object)
-        loss_metrics = eval_loss(dataset_test, dynamics_model, decoder, logic_loss_object)
+        loss_metrics = eval_loss(dataset_test, dynamics_model, decoder, logic_loss_object, device=device)
         ltn_predictions = get_ltn_predictions(dataset_test, logic_loss_object)
 
         metrics = {
