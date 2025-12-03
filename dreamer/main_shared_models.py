@@ -175,6 +175,12 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             kld_loss = 0.
             recon_loss = 0.
             logic_loss_total = 0.
+            
+            sample = dataset_train.sample(B, T)
+            obs = sample.observation
+            actions = sample.action
+                
+            for t in range(1, T):
 
             sample = dataset_train.sample(B, T)
             obs = sample.observation    
@@ -252,7 +258,8 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         logic_weight = logic_weight*logic_decay_rate
     
     wandb.finish()
-    save_model(encoder, epochs, "encoder", model_save_path)
+    #save_model(encoder, epochs, "encoder", model_save_path)
+    logic_loss_object.ltn_models.save_all_models(model_save_path)
     save_model(decoder, epochs, "decoder", model_save_path)
     save_model(rssm, epochs, "rssm", model_save_path)
     
