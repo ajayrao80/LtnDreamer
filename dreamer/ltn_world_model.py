@@ -100,10 +100,6 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
     dynamics_model = DynamicsModel(embed_dim, logic_model=logic_loss_object.ltn_models if logic_loss_object is not None else None, obs_shape=obs_shape, action_dim=action_dim).to(device)
     decoder = logic_loss_object.ltn_models.dec
 
-    eval_rollout(dataset_test, dynamics_model, decoder, logic_loss_object)
-
-    return 
-
     optim_model = torch.optim.Adam(list(dynamics_model.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) 
 
     wandb.login(key=login_key)
