@@ -57,11 +57,12 @@ def train(ltn_obj, optimizer, dataloader_train, dataloader_test, epochs, model_s
     for epoch in range(epochs):
         train_loss = 0
         train_sat = 0
+        device = "cuda" if torch.cuda.is_available() else 'cpu'
 
         #i = 0
         #for init_image_, numbers_init_, action_, next_image_, numbers_next_ in dataloader_train:
         for i, (init_image_, numbers_init_, action_, next_image_, numbers_next_) in enumerate(dataloader_train):
-            sat_val = ltn_obj.compute_sat(init_image_.float().to("cuda"), action_.float().to("cuda"), next_image_.float().to("cuda")) #, numbers_init_.float().to("cuda"), numbers_next_.float().to("cuda"))
+            sat_val = ltn_obj.compute_sat(init_image_.float().to(device), action_.float().to(device), next_image_.float().to(device)) #, numbers_init_.float().to("cuda"), numbers_next_.float().to("cuda"))
             
             optimizer.zero_grad()
             loss = 1.-sat_val

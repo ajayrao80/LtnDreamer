@@ -176,9 +176,9 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             recon_loss = 0.
             logic_loss_total = 0.
 
+            sample = dataset_train.sample(B, T)
+            obs = sample.observation    
             for t in range(1, T):
-                sample = dataset_train.sample(B, T)
-                obs = sample.observation
                 actions = sample.action
                 embed = encoder(obs[:, t-1], logic_loss_object.ltn_models)  # Updated encoder with logic models
                 prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(stoch, deter, actions[:, t-1], embed)
