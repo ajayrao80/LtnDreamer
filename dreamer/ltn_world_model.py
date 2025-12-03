@@ -77,7 +77,7 @@ def get_ltn_predictions(dataset, logic_loss_object, T=5):
         action = action.max(dim=2, keepdim=True).values
 
         ltn_reconstruction_pred = logic_loss_object.get_ltn_predictions(initial_obs[:, 0], action[:, 0].max(dim=1, keepdim=True).values)
-        return {"Base image (ground truth)":sample.observation[0, 0], "LTN Reconstruction": wandb.Image(ltn_reconstruction_pred[0]), "Ground Truth": wandb.Image(sample.observation[0, 1])}
+        return {"Base image (ground truth)":wandb.Image(sample.observation[0, 0]), "LTN Reconstruction": wandb.Image(ltn_reconstruction_pred[0]), "Ground Truth": wandb.Image(sample.observation[0, 1])}
 
 def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key, model_save_path, logic_models_path=None, project_name="vanilla_world_model", train_all=True, batch_size=32):
     obs_shape = (3, 128, 128)
