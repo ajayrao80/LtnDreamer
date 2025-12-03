@@ -74,25 +74,25 @@ class DecoderRules:
         #return self.ltn_F_and_P.logic_models.dec(self.ltn_F_and_P.logic_models.rot_minus(self.ltn_F_and_P.logic_models.front(init_image_a_5)), self.ltn_F_and_P.logic_models.right(init_image_a_5), self.ltn_F_and_P.logic_models.rot_minus(self.ltn_F_and_P.logic_models.right(init_image_a_5)))
     
     def get_reconstruction_based_on_actions(self, init_image, actions):
-        init_image_a_0 = init_image[actions == 0]
-        init_image_a_1 = init_image[actions == 1]       
-        init_image_a_2 = init_image[actions == 2]
-        init_image_a_3 = init_image[actions == 3]
-        init_image_a_4 = init_image[actions == 4]
-        init_image_a_5 = init_image[actions == 5]
+        init_image_a_0 = init_image[actions.squeeze(1) == 0]
+        init_image_a_1 = init_image[actions.squeeze(1) == 1]       
+        init_image_a_2 = init_image[actions.squeeze(1) == 2]
+        init_image_a_3 = init_image[actions.squeeze(1) == 3]
+        init_image_a_4 = init_image[actions.squeeze(1) == 4]
+        init_image_a_5 = init_image[actions.squeeze(1) == 5]
         reconstructions = torch.zeros_like(init_image)
         if init_image_a_0.shape[0] != 0:
-            reconstructions[actions == 0] = self.DecoderA0(init_image_a_0, actions[actions == 0])
+            reconstructions[actions.squeeze(1) == 0] = self.DecoderA0(init_image_a_0, actions[actions.squeeze(1) == 0])
         if init_image_a_1.shape[0] != 0:
-            reconstructions[actions == 1] = self.DecoderA1(init_image_a_1, actions[actions == 1])
+            reconstructions[actions.squeeze(1) == 1] = self.DecoderA1(init_image_a_1, actions[actions.squeeze(1) == 1])
         if init_image_a_2.shape[0] != 0:
-            reconstructions[actions == 2] = self.DecoderA2(init_image_a_2, actions[actions == 2])
+            reconstructions[actions.squeeze(1) == 2] = self.DecoderA2(init_image_a_2, actions[actions.squeeze(1) == 2])
         if init_image_a_3.shape[0] != 0:
-            reconstructions[actions == 3] = self.DecoderA3(init_image_a_3, actions[actions == 3])
+            reconstructions[actions.squeeze(1) == 3] = self.DecoderA3(init_image_a_3, actions[actions.squeeze(1) == 3])
         if init_image_a_4.shape[0] != 0:
-            reconstructions[actions == 4] = self.DecoderA4(init_image_a_4, actions[actions == 4])
+            reconstructions[actions.squeeze(1) == 4] = self.DecoderA4(init_image_a_4, actions[actions.squeeze(1) == 4])
         if init_image_a_5.shape[0] != 0:
-            reconstructions[actions == 5] = self.DecoderA5(init_image_a_5, actions[actions == 5])
+            reconstructions[actions.squeeze(1) == 5] = self.DecoderA5(init_image_a_5, actions[actions.squeeze(1) == 5])
             
         return reconstructions
 

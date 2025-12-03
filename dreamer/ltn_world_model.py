@@ -71,12 +71,12 @@ def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5, obs_s
 
 def get_ltn_predictions(dataset, logic_loss_object, T=5):
     with torch.no_grad():
-        sample = dataset.sample(1, T)
-        initial_obs = sample.observation[0, 0].unsqueeze(0)
-        action = sample.action[0, 0].unsqueeze(0)
-        action = action.max(dim=1, keepdim=True).values.squeeze(1)
+        sample = dataset.sample(2, T)
+        initial_obs = sample.observation #[0, 0].unsqueeze(0)
+        action = sample.action #[0, 0].unsqueeze(0)
+        action = action.max(dim=2, keepdim=True).values
 
-        ltn_reconstruction_pred = logic_loss_object.get_ltn_predictions(initial_obs, action)
+        ltn_reconstruction_pred = logic_loss_object.get_ltn_predictions(initial_obs[:, 0], action[:, 0].max(dim=1, keepdim=True).values)
         return {"Base image (ground truth)":sample.observation[0, 0], "LTN Reconstruction": wandb.Image(ltn_reconstruction_pred[0]), "Ground Truth": wandb.Image(sample.observation[0, 1])}
 
 def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key, model_save_path, logic_models_path=None, project_name="vanilla_world_model", train_all=True, batch_size=32):
@@ -102,6 +102,8 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
 
     optim_model = torch.optim.Adam(list(dynamics_model.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) 
 
+    ltn_predictions = get_ltn_predictions(dataset_test, logic_loss_object)
+    
     wandb.login(key=login_key)
     wandb.init(project=project_name)
 

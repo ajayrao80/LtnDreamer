@@ -42,7 +42,6 @@ class LTNRules:
         next_image_a_4 = ltn.Variable("next_image_a_4", next_image[actions_.squeeze(1) == 4]) if next_image[actions_.squeeze(1) == 4].shape[0] != 0 else None
         next_image_a_5 = ltn.Variable("next_image_a_5", next_image[actions_.squeeze(1) == 5]) if next_image[actions_.squeeze(1) == 5].shape[0] != 0 else None
 
-
         actions_a_0 = ltn.Variable("actions_a_0", actions_[actions_.squeeze(1) == 0]) if actions_[actions_.squeeze(1) == 0].shape[0] != 0 else None
         actions_a_1 = ltn.Variable("actions_a_1", actions_[actions_.squeeze(1) == 1]) if actions_[actions_.squeeze(1) == 1].shape[0] != 0 else None
         actions_a_2 = ltn.Variable("actions_a_2", actions_[actions_.squeeze(1) == 2]) if actions_[actions_.squeeze(1) == 2].shape[0] != 0 else None
