@@ -55,12 +55,12 @@ def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5):
         state = torch.zeros(1, initial_obs.shape[1], initial_obs.shape[2], initial_obs.shape[3]).to(device)
         
         for t in range(1, T):
-            actions = action_seq[0, t-1].max(dim=0, keepdim=True).values #.squeeze(1)
-            state = dynamics_model(state, initial_obs[0, t-1], actions) #[0, t-1].unsqueeze(1))    
+            actions = action_seq[:, t-1].max(dim=0, keepdim=True).values #.squeeze(1)
+            state = dynamics_model(state, initial_obs[:, t-1], actions) #[0, t-1].unsqueeze(1))    
             reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
             
-            ground_truth_images.append(wandb.Image(sample.observation[0, t]))
-            reconstructed_images.append(wandb.Image(reconstructed_image[0][0]))
+            ground_truth_images.append(wandb.Image(sample.observation[0, t-1]))
+            reconstructed_images.append(wandb.Image(reconstructed_image[0]))
 
         roll_outs = {
             "Ground Truth": ground_truth_images,
