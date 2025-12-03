@@ -74,7 +74,7 @@ def get_ltn_predictions(dataset, logic_loss_object, T=5):
         sample = dataset.sample(1, T)
         initial_obs = sample.observation[0, 0].unsqueeze(0)
         action = sample.action[0, 0].unsqueeze(0)
-        action = action.max(dim=1, keepdim=True).values #.squeeze(1)
+        action = action.max(dim=1, keepdim=True).values.squeeze(1)
 
         ltn_reconstruction_pred = logic_loss_object.get_ltn_predictions(initial_obs, action)
         return {"Base image (ground truth)":sample.observation[0, 0], "LTN Reconstruction": wandb.Image(ltn_reconstruction_pred[0]), "Ground Truth": wandb.Image(sample.observation[0, 1])}
@@ -143,7 +143,8 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
             "Imagination": rollout_metrics["Imagination"],
             "Logic Loss Test": loss_metrics["logic_loss"],
             "LTN Predictions": ltn_predictions["LTN Reconstruction"],
-            "LTN Ground Truth": ltn_predictions["Ground Truth"]
+            "LTN Ground Truth": ltn_predictions["Ground Truth"],
+            "Base image (ground truth)": ltn_predictions["Base image (ground truth)"]
         }
         wandb.log(metrics)
         #wandb.log({"Reconstruction Loss": recon_loss.item()})
