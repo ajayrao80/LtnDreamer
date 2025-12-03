@@ -101,9 +101,7 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
     decoder = logic_loss_object.ltn_models.dec
 
     optim_model = torch.optim.Adam(list(dynamics_model.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) 
-
-    ltn_predictions = get_ltn_predictions(dataset_test, logic_loss_object)
-    
+   
     wandb.login(key=login_key)
     wandb.init(project=project_name)
 
@@ -143,7 +141,7 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
             "Loss": l/total_iterations,
             "Ground Truth": rollout_metrics["Ground Truth"],
             "Imagination": rollout_metrics["Imagination"],
-            "Logic Loss Test": loss_metrics["logic_loss"],
+            "Logic Loss Test": loss_metrics["loss"],
             "LTN Predictions": ltn_predictions["LTN Reconstruction"],
             "LTN Ground Truth": ltn_predictions["Ground Truth"],
             "Base image (ground truth)": ltn_predictions["Base image (ground truth)"]
