@@ -71,7 +71,67 @@ class LTNRules:
             sat_agg = SatAgg(*reconstruction_axioms_based_on_actions_1, *reconstruction_axioms_based_on_actions_2)
     
         #print(f"sat agg: {sat_agg}")
-        return sat_agg   
+        return sat_agg
+
+    def compute_encoder_only_sat(self, init_image, actions_, next_image):
+        # cube 1 -----------------------------------------------------------
+        init_image_a_0 = ltn.Variable("init_image_a_0", init_image[actions_.squeeze(1) == 0]) if init_image[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        init_image_a_1 = ltn.Variable("init_image_a_1", init_image[actions_.squeeze(1) == 1]) if init_image[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        init_image_a_2 = ltn.Variable("init_image_a_2", init_image[actions_.squeeze(1) == 2]) if init_image[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        init_image_a_3 = ltn.Variable("init_image_a_3", init_image[actions_.squeeze(1) == 3]) if init_image[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        init_image_a_4 = ltn.Variable("init_image_a_4", init_image[actions_.squeeze(1) == 4]) if init_image[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        init_image_a_5 = ltn.Variable("init_image_a_5", init_image[actions_.squeeze(1) == 5]) if init_image[actions_.squeeze(1) == 5].shape[0] != 0 else None
+
+        # cube 2 -----------------------------------------------------------
+        next_image_a_0 = ltn.Variable("next_image_a_0", next_image[actions_.squeeze(1) == 0]) if next_image[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        next_image_a_1 = ltn.Variable("next_image_a_1", next_image[actions_.squeeze(1) == 1]) if next_image[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        next_image_a_2 = ltn.Variable("next_image_a_2", next_image[actions_.squeeze(1) == 2]) if next_image[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        next_image_a_3 = ltn.Variable("next_image_a_3", next_image[actions_.squeeze(1) == 3]) if next_image[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        next_image_a_4 = ltn.Variable("next_image_a_4", next_image[actions_.squeeze(1) == 4]) if next_image[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        next_image_a_5 = ltn.Variable("next_image_a_5", next_image[actions_.squeeze(1) == 5]) if next_image[actions_.squeeze(1) == 5].shape[0] != 0 else None
+
+        actions_a_0 = ltn.Variable("actions_a_0", actions_[actions_.squeeze(1) == 0]) if actions_[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        actions_a_1 = ltn.Variable("actions_a_1", actions_[actions_.squeeze(1) == 1]) if actions_[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        actions_a_2 = ltn.Variable("actions_a_2", actions_[actions_.squeeze(1) == 2]) if actions_[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        actions_a_3 = ltn.Variable("actions_a_3", actions_[actions_.squeeze(1) == 3]) if actions_[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        actions_a_4 = ltn.Variable("actions_a_4", actions_[actions_.squeeze(1) == 4]) if actions_[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        actions_a_5 = ltn.Variable("actions_a_5", actions_[actions_.squeeze(1) == 5]) if actions_[actions_.squeeze(1) == 5].shape[0] != 0 else None
+        reconstruction_axioms_based_on_actions_1 = self.get_encoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5)
+        #reconstruction_axioms_based_on_actions_2 = self.get_decoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5)
+
+        sat_agg = SatAgg(*reconstruction_axioms_based_on_actions_1)
+    
+        #print(f"sat agg: {sat_agg}")
+        return sat_agg  
+
+    def compute_decoder_only_sat(self, init_image, actions_, next_image):
+        # cube 1 -----------------------------------------------------------
+        init_image_a_0 = ltn.Variable("init_image_a_0", init_image[actions_.squeeze(1) == 0]) if init_image[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        init_image_a_1 = ltn.Variable("init_image_a_1", init_image[actions_.squeeze(1) == 1]) if init_image[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        init_image_a_2 = ltn.Variable("init_image_a_2", init_image[actions_.squeeze(1) == 2]) if init_image[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        init_image_a_3 = ltn.Variable("init_image_a_3", init_image[actions_.squeeze(1) == 3]) if init_image[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        init_image_a_4 = ltn.Variable("init_image_a_4", init_image[actions_.squeeze(1) == 4]) if init_image[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        init_image_a_5 = ltn.Variable("init_image_a_5", init_image[actions_.squeeze(1) == 5]) if init_image[actions_.squeeze(1) == 5].shape[0] != 0 else None
+
+        # cube 2 -----------------------------------------------------------
+        next_image_a_0 = ltn.Variable("next_image_a_0", next_image[actions_.squeeze(1) == 0]) if next_image[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        next_image_a_1 = ltn.Variable("next_image_a_1", next_image[actions_.squeeze(1) == 1]) if next_image[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        next_image_a_2 = ltn.Variable("next_image_a_2", next_image[actions_.squeeze(1) == 2]) if next_image[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        next_image_a_3 = ltn.Variable("next_image_a_3", next_image[actions_.squeeze(1) == 3]) if next_image[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        next_image_a_4 = ltn.Variable("next_image_a_4", next_image[actions_.squeeze(1) == 4]) if next_image[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        next_image_a_5 = ltn.Variable("next_image_a_5", next_image[actions_.squeeze(1) == 5]) if next_image[actions_.squeeze(1) == 5].shape[0] != 0 else None
+
+        actions_a_0 = ltn.Variable("actions_a_0", actions_[actions_.squeeze(1) == 0]) if actions_[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        actions_a_1 = ltn.Variable("actions_a_1", actions_[actions_.squeeze(1) == 1]) if actions_[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        actions_a_2 = ltn.Variable("actions_a_2", actions_[actions_.squeeze(1) == 2]) if actions_[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        actions_a_3 = ltn.Variable("actions_a_3", actions_[actions_.squeeze(1) == 3]) if actions_[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        actions_a_4 = ltn.Variable("actions_a_4", actions_[actions_.squeeze(1) == 4]) if actions_[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        actions_a_5 = ltn.Variable("actions_a_5", actions_[actions_.squeeze(1) == 5]) if actions_[actions_.squeeze(1) == 5].shape[0] != 0 else None
+        reconstruction_axioms_based_on_actions = self.get_decoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5)
+
+        sat_agg = SatAgg(*reconstruction_axioms_based_on_actions)
+
+        return sat_agg 
 
     def get_encoder_rules(self, init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5):
         rule_1 = self.encoder_constraints.EncoderRuleA0(init_image_a_0, next_image_a_0, actions_a_0) if init_image_a_0 is not None else None  

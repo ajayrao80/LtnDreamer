@@ -59,7 +59,7 @@ def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5, obs_s
             state = dynamics_model(state, initial_obs[:, t-1], actions) #[0, t-1].unsqueeze(1))    
             reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
             
-            ground_truth_images.append(wandb.Image(sample.observation[0, t-1]))
+            ground_truth_images.append(wandb.Image(sample.observation[0, t]))
             reconstructed_images.append(wandb.Image(reconstructed_image[0]))
 
         roll_outs = {
@@ -121,9 +121,10 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
                 recon_mean = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
 
                 ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) if train_all else 0.
-                logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
+                logic_encoder_loss = logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, state) if logic_models_path is not None else 0.
+                logic_decoder_loss = logic_loss_object.get_decoding_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
                 
-                logic_loss_total += ltn_loss + logic_loss 
+                logic_loss_total += ltn_loss + logic_encoder_loss + logic_decoder_loss
             
             loss = logic_loss_total
             optim_model.zero_grad()

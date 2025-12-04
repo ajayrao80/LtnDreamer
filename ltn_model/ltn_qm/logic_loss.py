@@ -17,6 +17,16 @@ class LogicLoss:
         loss = 1. - sat_val
         return loss
     
+    def get_encoding_loss(self, state, action, next_state):
+        sat_val = self.LTNObject.compute_encoder_only_sat(state, action, next_state)
+        loss = 1. - sat_val
+        return loss
+    
+    def get_decoding_loss(self, state, action, next_state):
+        sat_val = self.LTNObject.compute_decoder_only_sat(state, action, next_state)
+        loss = 1. - sat_val
+        return loss
+    
     def get_ltn_predictions(self, input_images, action):
         ltn_reconstruction_pred = self.LTNObject.decoder_constraints.get_reconstruction_based_on_actions(input_images, action)
         return ltn_reconstruction_pred
