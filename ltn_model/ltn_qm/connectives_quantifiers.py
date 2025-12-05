@@ -1,5 +1,5 @@
 import ltn
-from ltn_model.utils.utils import cosine_similarity
+from ltn_model.utils.utils import cosine_similarity, equal
 import torch
 
 And = ltn.Connective(ltn.fuzzy_ops.AndProd())
@@ -10,7 +10,7 @@ Exists = ltn.Quantifier(ltn.fuzzy_ops.AggregPMean(p=2), quantifier="e")
 SatAgg = ltn.fuzzy_ops.SatAgg()
 Or = ltn.Connective(ltn.fuzzy_ops.OrProbSum())
 Sim = ltn.Predicate(func=lambda x, y: cosine_similarity(x, y))
-Eq = ltn.Predicate(func=lambda x, y: torch.exp(-torch.norm(x - y, dim=1))) 
+Eq = ltn.Predicate(func=lambda x, y: equal(x, y)) 
 
 
 

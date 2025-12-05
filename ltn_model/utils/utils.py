@@ -50,6 +50,11 @@ def crop(image, left = 50, top = 50, window_size=100):
     cropped_image = img_pil.crop(window)
     return cropped_image
 
+def equal(x, y):
+    x = x.view(x.shape[0], -1)
+    y = y.view(y.shape[0], -1)
+    return torch.exp(-torch.norm(x - y, dim=1))
+
 def cosine_similarity(A, B):
     A_flat = A.view(A.size(0), -1)  
     B_flat = B.view(B.size(0), -1)
