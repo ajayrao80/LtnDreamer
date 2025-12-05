@@ -1,5 +1,5 @@
 import ltn
-from ltn_model.ltn_qm.connectives_quantifiers import (Forall, Sim, And)
+from ltn_model.ltn_qm.connectives_quantifiers import (Forall, Eq, And)
 
 class EncoderRules:
     def __init__(self, ltn_F_and_P):
@@ -10,14 +10,14 @@ class EncoderRules:
         ltn.diag(init_image, next_image, action)
         return Forall([init_image, next_image, action],
             #And(Sim(self.ltn_F_and_P.Front(init_image), self.ltn_F_and_P.Up(next_image)), Sim(self.ltn_F_and_P.RotPlus(self.ltn_F_and_P.Right(init_image)), self.ltn_F_and_P.Right(next_image))) , p=p
-            And(Sim(self.ltn_F_and_P.Front(init_image), self.ltn_F_and_P.Up(next_image)), Sim(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Right(init_image), action), self.ltn_F_and_P.Right(next_image))) , p=p
+            And(Eq(self.ltn_F_and_P.Front(init_image), self.ltn_F_and_P.Up(next_image)), Eq(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Right(init_image), action), self.ltn_F_and_P.Right(next_image))) , p=p
         )
 
     def EncoderRuleA1(self, init_image, next_image, action, p=3):
         ltn.diag(init_image, next_image, action)
         return Forall([init_image, next_image, action],
             #And(Sim(self.ltn_F_and_P.Up(init_image), self.ltn_F_and_P.Front(next_image)), Sim(self.ltn_F_and_P.RotMinus(self.ltn_F_and_P.Right(init_image)), self.ltn_F_and_P.Right(next_image))) , p=p
-            And(Sim(self.ltn_F_and_P.Up(init_image), self.ltn_F_and_P.Front(next_image)), Sim(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Right(init_image), action), self.ltn_F_and_P.Right(next_image))) , p=p
+            And(Eq(self.ltn_F_and_P.Up(init_image), self.ltn_F_and_P.Front(next_image)), Eq(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Right(init_image), action), self.ltn_F_and_P.Right(next_image))) , p=p
             
         )
 
@@ -25,28 +25,28 @@ class EncoderRules:
         ltn.diag(init_image, next_image, action)
         return Forall([init_image, next_image, action],
             #And(Sim(self.ltn_F_and_P.Right(init_image), self.ltn_F_and_P.Front(next_image)), Sim(self.ltn_F_and_P.RotPlus(self.ltn_F_and_P.Up(init_image)), self.ltn_F_and_P.Up(next_image))) , p=p
-            And(Sim(self.ltn_F_and_P.Right(init_image), self.ltn_F_and_P.Front(next_image)), Sim(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Up(init_image), action), self.ltn_F_and_P.Up(next_image))) , p=p
+            And(Eq(self.ltn_F_and_P.Right(init_image), self.ltn_F_and_P.Front(next_image)), Eq(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Up(init_image), action), self.ltn_F_and_P.Up(next_image))) , p=p
         )
 
     def EncoderRuleA3(self, init_image, next_image, action, p=3):
         ltn.diag(init_image, next_image, action)
         return Forall([init_image, next_image, action],
             #And(Sim(self.ltn_F_and_P.Front(init_image), self.ltn_F_and_P.Right(next_image)), Sim(self.ltn_F_and_P.RotMinus(self.ltn_F_and_P.Up(init_image)), self.ltn_F_and_P.Up(next_image))) , p=p
-            And(Sim(self.ltn_F_and_P.Front(init_image), self.ltn_F_and_P.Right(next_image)), Sim(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Up(init_image), action), self.ltn_F_and_P.Up(next_image))) , p=p
+            And(Eq(self.ltn_F_and_P.Front(init_image), self.ltn_F_and_P.Right(next_image)), Eq(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Up(init_image), action), self.ltn_F_and_P.Up(next_image))) , p=p
         )
 
     def EncoderRuleA4(self, init_image, next_image, action, p=3):
         ltn.diag(init_image, next_image, action)
         return Forall([init_image, next_image, action],
             #And(Sim(self.ltn_F_and_P.RotPlus(self.ltn_F_and_P.Front(init_image)), self.ltn_F_and_P.Front(next_image)), Sim(self.ltn_F_and_P.RotPlus(self.ltn_F_and_P.Up(init_image)), self.ltn_F_and_P.Right(next_image))) , p=p
-            And(Sim(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Front(init_image), action), self.ltn_F_and_P.Front(next_image)), Sim(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Up(init_image), action), self.ltn_F_and_P.Right(next_image))) , p=p
+            And(Eq(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Front(init_image), action), self.ltn_F_and_P.Front(next_image)), Eq(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Up(init_image), action), self.ltn_F_and_P.Right(next_image))) , p=p
         )
 
     def EncoderRuleA5(self, init_image, next_image, action, p=3):
         ltn.diag(init_image, next_image, action)
         return Forall([init_image, next_image, action],
             #And(Sim(self.ltn_F_and_P.RotMinus(self.ltn_F_and_P.Front(init_image)), self.ltn_F_and_P.Front(next_image)), Sim(self.ltn_F_and_P.RotMinus(self.ltn_F_and_P.Up(init_image)), self.ltn_F_and_P.Right(next_image))) , p=p
-            And(Sim(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Front(init_image), action), self.ltn_F_and_P.Front(next_image)), Sim(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Up(init_image), action), self.ltn_F_and_P.Right(next_image))) , p=p
+            And(Eq(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Front(init_image), action), self.ltn_F_and_P.Front(next_image)), Eq(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Up(init_image), action), self.ltn_F_and_P.Right(next_image))) , p=p
         )
 
 

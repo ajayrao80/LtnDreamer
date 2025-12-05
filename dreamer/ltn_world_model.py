@@ -140,12 +140,12 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
         metrics = {
             "Epoch": epoch,
             "Loss": l/total_iterations,
-            "Ground Truth": rollout_metrics["Ground Truth"],
-            "Imagination": rollout_metrics["Imagination"],
             "Logic Loss Test": loss_metrics["loss"],
             "LTN Predictions": ltn_predictions["LTN Reconstruction"],
             "LTN Ground Truth": ltn_predictions["Ground Truth"],
-            "Base image (ground truth)": ltn_predictions["Base image (ground truth)"]
+            "Base image (ground truth)": ltn_predictions["Base image (ground truth)"],
+            "Ground Truth": rollout_metrics["Ground Truth"],
+            "Imagination": rollout_metrics["Imagination"]
         }
         wandb.log(metrics)
         #wandb.log({"Reconstruction Loss": recon_loss.item()})
