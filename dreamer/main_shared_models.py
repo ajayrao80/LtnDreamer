@@ -185,10 +185,12 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(stoch, deter, actions[:, t-1], embed)
                 upscaled_post_stoch = upscale_network(post_stoch)
                 recon_mean = decoder(logic_loss_object.ltn_models.front(upscaled_post_stoch), logic_loss_object.ltn_models.right(upscaled_post_stoch), logic_loss_object.ltn_models.up(upscaled_post_stoch)) #recon_mean = decoder(post_stoch)
+                """
                 fixed_std = 1.0
                 dist = torch.distributions.Normal(recon_mean, fixed_std)
                 recon_log_prob = dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()
                 recon_loss += -recon_log_prob
+                """
                 
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values.squeeze(1)
                 ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) if train_all else 0.
@@ -213,6 +215,8 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                 kld_loss += kld
                 stoch = post_stoch
 
+            # turn off recon loss
+            recon_loss = 0.
             #logic_weight = recon_loss.item()
             logic_loss_total = logic_weight*logic_loss_total
             kld_loss = (kld_loss * beta)
