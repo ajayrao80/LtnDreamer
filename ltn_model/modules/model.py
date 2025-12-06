@@ -42,7 +42,7 @@ class LTNModel:
         model.load_state_dict(torch.load(path, weights_only=True))
         return model
     
-    def load_all_models(self, model_path, front, right, up, dec, rot_change, rot_plus, rot_minus, digits=None):
+    def load_all_models(self, model_path, front, right, up, dec, rot_change) #, rot_plus, rot_minus, digits=None):
         self.front = self.load_model(f"{model_path}/{front}", self.front)
         self.right = self.load_model(f"{model_path}/{right}", self.right)
         self.up = self.load_model(f"{model_path}/{up}", self.up)
