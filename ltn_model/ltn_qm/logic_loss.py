@@ -3,11 +3,11 @@ from ltn_model.modules.model import LTNModel
 import torch
 
 class LogicLoss:
-    def __init__(self, logic_model_path, model_name_front="front", model_name_right="right", model_name_up="up", model_name_dec="dec", model_name_rot_plus="rot_plus", model_name_rot_minus="rot_minus", model_name_digits="digits", train_all=False):
+    def __init__(self, logic_model_path, model_name_front="front", model_name_right="right", model_name_up="up", model_name_dec="dec", model_name_rot_change="rot_change", model_name_rot_plus="rot_plus", model_name_rot_minus="rot_minus", model_name_digits="digits", train_all=False):
         self.ltn_models = LTNModel()
 
         if not train_all:
-            self.ltn_models.load_all_models(logic_model_path, model_name_front, model_name_right, model_name_up, model_name_dec, model_name_rot_plus, model_name_rot_minus, model_name_digits)
+            self.ltn_models.load_all_models(logic_model_path, model_name_front, model_name_right, model_name_up, model_name_dec, model_name_rot_change) #, model_name_rot_minus, model_name_digits)
 
         self.LTNObject = LTNRules(self.ltn_models)
     
