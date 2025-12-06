@@ -7,15 +7,15 @@ class DynamicsModel(nn.Module):
         super().__init__()
         self.embed_dim = 128*14*14
         self.network = nn.Sequential(
-            nn.Linear(6*self.embed_dim + action_dim, 1024),
+            nn.Linear(3*self.embed_dim + action_dim, 1024),
                 nn.ReLU(),
                 nn.Linear(1024, 512),
                 nn.ReLU(),
-                nn.Linear(512, 6*self.embed_dim)
+                nn.Linear(512, 3*self.embed_dim)
             )
         
         self.summary = nn.Sequential(
-            nn.Linear(6*self.embed_dim, 1024),
+            nn.Linear(3*self.embed_dim, 1024),
             nn.ReLU(),
             nn.Linear(1024, 512),
             nn.ReLU(),
@@ -31,15 +31,14 @@ class DynamicsModel(nn.Module):
         
         self.logic_model = logic_model
 
-    def forward(self, prev_state, obs, action):
+    def forward(self, obs, action):
         front = self.logic_model.front(obs)
         right = self.logic_model.right(obs)
         up = self.logic_model.up(obs)
-        prev_front, prev_right, prev_up = self.logic_model.front(prev_state), self.logic_model.right(prev_state), self.logic_model.up(prev_state)
-        rot_change_front = self.logic_model.rot_change(front, action)
-        rot_change_right = self.logic_model.rot_change(right, action)
-        rot_change_up = self.logic_model.rot_change(up, action)
-        x = torch.cat([rot_change_front.flatten(start_dim=1), rot_change_right.flatten(start_dim=1), rot_change_up.flatten(start_dim=1), prev_front.flatten(start_dim=1), prev_right.flatten(start_dim=1), prev_up.flatten(start_dim=1), action], dim=-1)
+        #rot_change_front = self.logic_model.rot_change(front, action)
+        #rot_change_right = self.logic_model.rot_change(right, action)
+        #rot_change_up = self.logic_model.rot_change(up, action)
+        x = torch.cat([front.flatten(start_dim=1), right.flatten(start_dim=1), up.flatten(start_dim=1), action], dim=-1)
         out = self.network(x)
         out = self.summary(out)
         out = self.upscale_network(out)
