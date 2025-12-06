@@ -22,10 +22,10 @@ def eval_loss(dataset, dynamics_model, decoder, logic_loss_object, T=5, batch_si
     actions = sample.action.max(dim=2, keepdim=True).values
     with torch.no_grad():
         total_loss = 0.
-        state = torch.zeros(batch_size, obs_shape[0], obs_shape[1], obs_shape[2]).to(device)
+        #state = torch.zeros(batch_size, obs_shape[0], obs_shape[1], obs_shape[2]).to(device)
         for t in range(1, T):
             action_batch = actions[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
-            state = dynamics_model(state, obs[:, t-1], action_batch) #[:, t-1])    
+            state = dynamics_model(obs[:, t-1], action_batch) #[:, t-1])    
             reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
 
             ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], action_batch, obs[:, t]) 
@@ -52,11 +52,11 @@ def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5, obs_s
         ground_truth_images = [wandb.Image(sample.observation[0, 0])]
         reconstructed_images = []
 
-        state = torch.zeros(B, obs_shape[0], obs_shape[1], obs_shape[2]).to(device)
+        #state = torch.zeros(B, obs_shape[0], obs_shape[1], obs_shape[2]).to(device)
         
         for t in range(1, T):
             actions = action_seq[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
-            state = dynamics_model(state, initial_obs[:, t-1], actions) #[0, t-1].unsqueeze(1))    
+            state = dynamics_model(initial_obs[:, t-1], actions) #[0, t-1].unsqueeze(1))    
             reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
             
             ground_truth_images.append(wandb.Image(sample.observation[0, t]))
@@ -79,6 +79,7 @@ def get_ltn_predictions(dataset, logic_loss_object, T=5):
         ltn_reconstruction_pred = logic_loss_object.get_ltn_predictions(initial_obs[:, 0], action[:, 0].max(dim=1, keepdim=True).values)
         return {"Base image (ground truth)":wandb.Image(initial_obs[0, 0]), "LTN Reconstruction": wandb.Image(ltn_reconstruction_pred[0]), "Ground Truth": wandb.Image(initial_obs[0, 1])}
 
+"""
 def inference(front, right, up, decoder, rot_change, initial_obs, actions):
     with torch.no_grad():
         obs = initial_obs
@@ -89,7 +90,7 @@ def inference(front, right, up, decoder, rot_change, initial_obs, actions):
             obs = decoder(front_enc, right_enc, up_enc)
             show_image = wandb.Image(obs[0])
             wandb.log({f"Inference Step {t}": show_image})
-
+"""
 
 def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key, model_save_path, logic_models_path=None, project_name="vanilla_world_model", train_all=True, batch_size=32):
     obs_shape = (3, 128, 128)
@@ -111,6 +112,10 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
     logic_loss_object = LogicLoss(logic_models_path, model_name_digits=None, train_all=train_all)
     dynamics_model = DynamicsModel(embed_dim, logic_model=logic_loss_object.ltn_models if logic_loss_object is not None else None, obs_shape=obs_shape, action_dim=action_dim).to(device)
     decoder = logic_loss_object.ltn_models.dec
+    
+    eval_rollout(dataset_test, dynamics_model, decoder, logic_loss_object)
+    
+    return
 
     optim_model = torch.optim.Adam(list(dynamics_model.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) 
    
