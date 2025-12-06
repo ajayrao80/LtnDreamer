@@ -77,7 +77,19 @@ def get_ltn_predictions(dataset, logic_loss_object, T=5):
         action = action.max(dim=2, keepdim=True).values
 
         ltn_reconstruction_pred = logic_loss_object.get_ltn_predictions(initial_obs[:, 0], action[:, 0].max(dim=1, keepdim=True).values)
-        return {"Base image (ground truth)":wandb.Image(sample.observation[0, 0]), "LTN Reconstruction": wandb.Image(ltn_reconstruction_pred[0]), "Ground Truth": wandb.Image(sample.observation[0, 1])}
+        return {"Base image (ground truth)":wandb.Image(initial_obs[0, 0]), "LTN Reconstruction": wandb.Image(ltn_reconstruction_pred[0]), "Ground Truth": wandb.Image(initial_obs[0, 1])}
+
+def inference(front, right, up, decoder, rot_change, initial_obs, actions):
+    with torch.no_grad():
+        obs = initial_obs
+        for t in range(len(actions)):
+            front_enc = rot_change(front(obs), actions[t])
+            right_enc = rot_change(right(obs), actions[t])
+            up_enc = rot_change(up(obs), actions[t])
+            obs = decoder(front_enc, right_enc, up_enc)
+            show_image = wandb.Image(obs[0])
+            wandb.log({f"Inference Step {t}": show_image})
+
 
 def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key, model_save_path, logic_models_path=None, project_name="vanilla_world_model", train_all=True, batch_size=32):
     obs_shape = (3, 128, 128)
@@ -93,7 +105,7 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
     action_dim = 1 # dataset loader wants one-hot encoding and dynamics model wants index of action. Just a hack to make both happy.
 
     B, T = batch_size, 5
-    total_iterations = int(dataset_train.observation.shape[0] / B)
+    total_iterations = int(dataset_train.observation.shape[0] / (B*T))
     epochs = epochs
 
     logic_loss_object = LogicLoss(logic_models_path, model_name_digits=None, train_all=train_all)
@@ -114,10 +126,9 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
             sample = dataset_train.sample(B, T)
             obs = sample.observation
             actions = sample.action.max(dim=2, keepdim=True).values
-            state = torch.zeros(B, obs_shape[0], obs_shape[1], obs_shape[2]).to(device)
             for t in range(1, T):
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
-                state = dynamics_model(state, obs[:, t-1], actions_batch)     
+                state = dynamics_model(obs[:, t-1], actions_batch)     
                 recon_mean = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
 
                 ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) if train_all else 0.
