@@ -111,7 +111,7 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
 
     logic_loss_object = LogicLoss(logic_models_path, model_name_digits=None, train_all=train_all)
     dynamics_model = DynamicsModel(embed_dim, logic_model=logic_loss_object.ltn_models if logic_loss_object is not None else None, obs_shape=obs_shape, action_dim=action_dim).to(device)
-    if train_all:
+    if not train_all:
         dynamics_model.load_state_dict(torch.load(f"{model_save_path}/world_model_dynamics_200", weights_only=True))
 
     decoder = logic_loss_object.ltn_models.dec
