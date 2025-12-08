@@ -26,11 +26,12 @@ def eval_loss(dataset, dynamics_model, decoder, logic_loss_object, T=5, batch_si
         for t in range(1, T):
             action_batch = actions[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
             state = dynamics_model(obs[:, t-1], action_batch) #[:, t-1])    
-            reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
+            #reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
 
             ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], action_batch, obs[:, t]) 
-            logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], action_batch, reconstructed_image) 
-            total_loss += ltn_loss + logic_loss 
+            logic_encoder_loss = logic_loss_object.get_encoding_loss(obs[:, t-1], action_batch, state)
+            #logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], action_batch, reconstructed_image) 
+            total_loss += ltn_loss + logic_encoder_loss #+ logic_loss 
             
         total_loss = total_loss/T
 
@@ -57,8 +58,8 @@ def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5, obs_s
         for t in range(1, T):
             actions = action_seq[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
             state = dynamics_model(initial_obs[:, t-1], actions) #[0, t-1].unsqueeze(1))    
-            reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
-            
+            #reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
+            reconstructed_image = state
             ground_truth_images.append(wandb.Image(initial_obs[0, t]))
             reconstructed_images.append(wandb.Image(reconstructed_image[0]))
             print(reconstructed_image.shape)
@@ -134,13 +135,13 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
             for t in range(1, T):
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
                 state = dynamics_model(obs[:, t-1], actions_batch)     
-                recon = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
+                #recon = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
 
                 ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) #if train_all else 0.
                 logic_encoder_loss = logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, state) #if logic_models_path is not None else 0.
-                logic_decoder_loss = logic_loss_object.equal_decoding(recon, obs[:, t]) # if logic_models_path is not None else 0.
+                #logic_decoder_loss = logic_loss_object.equal_decoding(recon, obs[:, t]) # if logic_models_path is not None else 0.
                 
-                logic_loss_total += ltn_loss + logic_encoder_loss + logic_decoder_loss
+                logic_loss_total += ltn_loss + logic_encoder_loss #+ logic_decoder_loss
             
             loss = logic_loss_total
             optim_model.zero_grad()
