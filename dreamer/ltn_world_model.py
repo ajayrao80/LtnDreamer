@@ -133,13 +133,13 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
             for t in range(1, T):
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
                 state = dynamics_model(obs[:, t-1], actions_batch)     
-                recon_mean = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
+                #recon_mean = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
 
                 ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) if train_all else 0.
                 logic_encoder_loss = logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, state) if logic_models_path is not None else 0.
-                logic_decoder_loss = logic_loss_object.get_decoding_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
+                #logic_decoder_loss = logic_loss_object.get_decoding_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
                 
-                logic_loss_total += ltn_loss + logic_encoder_loss + logic_decoder_loss
+                logic_loss_total += ltn_loss + logic_encoder_loss #+ logic_decoder_loss
             
             loss = logic_loss_total
             optim_model.zero_grad()
