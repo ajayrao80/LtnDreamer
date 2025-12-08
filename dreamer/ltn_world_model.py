@@ -58,12 +58,10 @@ def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5, obs_s
         for t in range(1, T):
             actions = action_seq[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
             state = dynamics_model(initial_obs[:, t-1], actions) #[0, t-1].unsqueeze(1))    
-            #reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
-            reconstructed_image = state
+            reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
             ground_truth_images.append(wandb.Image(initial_obs[0, t]))
             reconstructed_images.append(wandb.Image(reconstructed_image[0]))
-            print(reconstructed_image.shape)
-
+            
         roll_outs = {
             "Ground Truth": ground_truth_images,
             "Imagination": reconstructed_images
