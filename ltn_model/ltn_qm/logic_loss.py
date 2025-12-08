@@ -22,6 +22,11 @@ class LogicLoss:
         loss = 1. - sat_val
         return loss
     
+    def equal_decoding(self, pred, ground_truth):
+        sat_val = self.LTNObject.compute_equal_decoding_sat(pred, ground_truth)
+        loss = 1. - sat_val
+        return loss
+    
     def get_decoding_loss(self, state, action, next_state):
         sat_val = self.LTNObject.compute_decoder_only_sat(state, action, next_state)
         loss = 1. - sat_val

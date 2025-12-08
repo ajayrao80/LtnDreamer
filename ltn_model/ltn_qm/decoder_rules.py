@@ -73,6 +73,11 @@ class DecoderRules:
         return self.ltn_F_and_P.logic_models.dec(self.ltn_F_and_P.logic_models.rot_change(self.ltn_F_and_P.logic_models.front(init_image_a_5), action), self.ltn_F_and_P.logic_models.right(init_image_a_5), self.ltn_F_and_P.logic_models.rot_change(self.ltn_F_and_P.logic_models.right(init_image_a_5), action))
         #return self.ltn_F_and_P.logic_models.dec(self.ltn_F_and_P.logic_models.rot_minus(self.ltn_F_and_P.logic_models.front(init_image_a_5)), self.ltn_F_and_P.logic_models.right(init_image_a_5), self.ltn_F_and_P.logic_models.rot_minus(self.ltn_F_and_P.logic_models.right(init_image_a_5)))
     
+    def compute_equal_decoding_sat(self, pred, ground_truth):
+        ltn.diag(pred, ground_truth)
+        return Forall([pred, ground_truth],
+                      Sim(pred, ground_truth))
+
     def get_reconstruction_based_on_actions(self, init_image, actions):
         init_image_a_0 = init_image[actions.squeeze(1) == 0]
         init_image_a_1 = init_image[actions.squeeze(1) == 1]       

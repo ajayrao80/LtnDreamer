@@ -49,7 +49,7 @@ def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5, obs_s
         B = initial_obs.size(0)
         device = initial_obs.device
 
-        ground_truth_images = [wandb.Image(sample.observation[0, 0])]
+        ground_truth_images = [wandb.Image(initial_obs[0, 0])]
         reconstructed_images = []
 
         #state = torch.zeros(B, obs_shape[0], obs_shape[1], obs_shape[2]).to(device)
@@ -59,8 +59,9 @@ def eval_rollout(dataset, dynamics_model, decoder, logic_loss_object, T=5, obs_s
             state = dynamics_model(initial_obs[:, t-1], actions) #[0, t-1].unsqueeze(1))    
             reconstructed_image = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
             
-            ground_truth_images.append(wandb.Image(sample.observation[0, t]))
+            ground_truth_images.append(wandb.Image(initial_obs[0, t]))
             reconstructed_images.append(wandb.Image(reconstructed_image[0]))
+            print(reconstructed_image.shape)
 
         roll_outs = {
             "Ground Truth": ground_truth_images,
@@ -115,7 +116,7 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
         dynamics_model.load_state_dict(torch.load(f"{model_save_path}/world_model_dynamics_200", weights_only=True))
 
     decoder = logic_loss_object.ltn_models.dec
-    
+
     optim_model = torch.optim.Adam(list(dynamics_model.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) 
    
     wandb.login(key=login_key)
@@ -133,13 +134,13 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
             for t in range(1, T):
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
                 state = dynamics_model(obs[:, t-1], actions_batch)     
-                #recon_mean = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
+                recon = decoder(logic_loss_object.ltn_models.front(state), logic_loss_object.ltn_models.right(state), logic_loss_object.ltn_models.up(state)) 
 
                 ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) #if train_all else 0.
                 logic_encoder_loss = logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, state) #if logic_models_path is not None else 0.
-                #logic_decoder_loss = logic_loss_object.get_decoding_loss(obs[:, t-1], actions_batch, recon_mean) if logic_models_path is not None else 0.
+                logic_decoder_loss = logic_loss_object.equal_decoding(recon, obs[:, t]) # if logic_models_path is not None else 0.
                 
-                logic_loss_total += ltn_loss + logic_encoder_loss #+ logic_decoder_loss
+                logic_loss_total += ltn_loss + logic_encoder_loss + logic_decoder_loss
             
             loss = logic_loss_total
             optim_model.zero_grad()

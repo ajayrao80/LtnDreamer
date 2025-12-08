@@ -156,6 +156,10 @@ class LTNRules:
         rules = [rule_1, rule_2, rule_3, rule_4, rule_5, rule_6]
         rules = [rule for rule in rules if rule is not None]
         return rules
+    
+    def compute_equal_decoding_sat(self, pred, ground_truth):
+        sat_val = self.decoder_constraints.compute_equal_decoding_sat(pred, ground_truth)
+        return sat_val
 
     def get_digit_rules(self, init_image, next_image, digit_labels_f_init, digit_labels_r_init, digit_labels_u_init, digit_labels_f_next, digit_labels_r_next, digit_labels_u_next):
         #same_digit_rules = self.digit_constraints.get_same_digit_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5)
