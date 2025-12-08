@@ -158,6 +158,8 @@ class LTNRules:
         return rules
     
     def compute_equal_decoding_sat(self, pred, ground_truth):
+        pred = ltn.Variable("pred", pred)
+        ground_truth = ltn.Variable("ground_truth", ground_truth)
         sat_val = self.decoder_constraints.compute_equal_decoding_sat(pred, ground_truth)
         return sat_val
 
