@@ -252,7 +252,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         wandb.log(metrics)
         #wandb.log({"Reconstruction Loss": recon_loss.item()})
         #wandb.log({"KLD Loss": kld_loss.item()})
-        print(f"Epoch {epoch}: recon_loss={recon_loss.item():.2f}, kld_loss={kld_loss.item():.2f}, Logic loss:{logic_l}")
+        print(f"Epoch {epoch}: kld_loss={kld_loss.item():.2f}, Logic loss:{logic_l}") #recon_loss={recon_loss.item():.2f}
         logic_weight = logic_weight*logic_decay_rate
     
     wandb.finish()
