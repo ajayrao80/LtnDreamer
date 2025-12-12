@@ -208,10 +208,12 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                     torch.tensor(free_nats).to(device), kld
                 )
 
+                """
                 fixed_std = 1.0
                 dist = torch.distributions.Normal(recon_mean, fixed_std)
                 recon_log_prob = dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()
                 recon_loss += -recon_log_prob
+                """
 
                 kld_loss += kld
                 stoch = post_stoch
@@ -219,14 +221,14 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             #logic_weight = recon_loss.item()
             logic_loss_total = logic_weight*logic_loss_total
             kld_loss = (kld_loss * beta)
-            loss = kld_loss + logic_loss_total + recon_loss
+            loss = kld_loss + logic_loss_total #+ recon_loss
             optim_model.zero_grad()
             loss.backward()
             optim_model.step()
 
             l += loss.item()
             logic_l += logic_loss_total.item()
-            rl += recon_loss.item()
+            #rl += recon_loss.item()
             kld_l += kld_loss.item()
         
         rollout_metrics = eval_rollout(dataset_test, encoder, rssm, decoder, logic_loss_object, upscale_network)
