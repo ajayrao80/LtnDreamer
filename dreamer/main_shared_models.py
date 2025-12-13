@@ -38,14 +38,14 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, upscale_networ
             prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(
                 stoch, deter, actions[:, t-1], embed)
             
-            upscaled_post_stoch = upscale_network(post_stoch)
-            mean = decoder(logic_loss_object.ltn_models.front(upscaled_post_stoch), logic_loss_object.ltn_models.right(upscaled_post_stoch), logic_loss_object.ltn_models.up(upscaled_post_stoch)) #mean = decoder(post_stoch)
+            f, r, u = upscale_network(post_stoch) #upscaled_post_stoch = upscale_network(post_stoch)
+            mean = decoder(f, r, u) #decoder(logic_loss_object.ltn_models.front(upscaled_post_stoch), logic_loss_object.ltn_models.right(upscaled_post_stoch), logic_loss_object.ltn_models.up(upscaled_post_stoch)) #mean = decoder(post_stoch)
             dist = torch.distributions.Normal(mean, 1.0)  # Decoder returns mean
             log_prob = -dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()  # Per batch
             
             actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
             logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, mean) if logic_loss_object is not None else "-"
-            logic_loss += logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, upscaled_post_stoch)
+            #logic_loss += logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, upscaled_post_stoch)
 
             kld = torch.distributions.kl_divergence(
                 torch.distributions.Normal(post_mean, post_std),
@@ -93,8 +93,8 @@ def eval_rollout(dataset, encoder, rssm, decoder, logic_loss_object, upscale_net
                 stoch_state, deter_state, action_seq[:, t-1], embed=embed  
             )
 
-            upscaled_post_stoch = upscale_network(post_stoch)
-            reconstructed_image = decoder(logic_loss_object.ltn_models.front(upscaled_post_stoch), logic_loss_object.ltn_models.right(upscaled_post_stoch), logic_loss_object.ltn_models.up(upscaled_post_stoch))
+            f, r, u = upscale_network(post_stoch) #upscaled_post_stoch = upscale_network(post_stoch)
+            reconstructed_image = decoder(f, r, u) #decoder(logic_loss_object.ltn_models.front(upscaled_post_stoch), logic_loss_object.ltn_models.right(upscaled_post_stoch), logic_loss_object.ltn_models.up(upscaled_post_stoch))
             #reconstructed_image = decoder(post_stoch)
 
             ground_truth_images.append(wandb.Image(sample.observation[0, t]))
@@ -138,7 +138,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     #encoder = Encoder(obs_shape, embed_dim).to(device)
     #decoder = Decoder(stoch_dim, obs_shape).to(device) #Decoder(embed_dim, obs_shape).to(device)
     rssm = RSSM(action_dim, stoch_dim, deter_dim, embed_dim).to(device)
-    upscale_network = UpscaleNetwork(upscale_dim=obs_shape[0]*obs_shape[1]*obs_shape[2]).to(device)
+    upscale_network = UpscaleNetwork(stoch_dim=stoch_dim).to(device) #UpscaleNetwork(upscale_dim=stoch_dim).to(device) #UpscaleNetwork(upscale_dim=obs_shape[0]*obs_shape[1]*obs_shape[2]).to(device)
     dataset_object = Dataset(obs_shape, action_dim, device, dataset_train_path, dataset_test_path)
     dataset_train = dataset_object.get_dataset_train()
     dataset_test = dataset_object.get_dataset_test()
@@ -159,7 +159,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     #    optim_model = torch.optim.Adam(list(rssm.parameters()), lr=lr) # list(decoder.parameters()) + #list(encoder.parameters()) + 
     #else:
     optim_model = torch.optim.Adam(list(upscale_network.parameters()) + list(rssm.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) #list(encoder.parameters()) + list(decoder.parameters())
-
+    
     wandb.login(key=login_key)
     wandb.init(project=project_name)
 
@@ -184,15 +184,15 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             for t in range(1, T):
                 embed = encoder(obs[:, t-1], logic_loss_object.ltn_models)  # Updated encoder with logic models
                 prior_stoch, prior_mean, prior_std, post_stoch, post_mean, post_std, deter = rssm(stoch, deter, actions[:, t-1], embed)
-                upscaled_post_stoch = upscale_network(post_stoch)
-                recon_mean = decoder(logic_loss_object.ltn_models.front(upscaled_post_stoch), logic_loss_object.ltn_models.right(upscaled_post_stoch), logic_loss_object.ltn_models.up(upscaled_post_stoch)) #recon_mean = decoder(post_stoch)
+                f, r, u = upscale_network(post_stoch) #upscaled_post_stoch = upscale_network(post_stoch)
+                recon_mean = decoder(f, r, u) #recon_mean = decoder(post_stoch) #decoder(logic_loss_object.ltn_models.front(upscaled_post_stoch), logic_loss_object.ltn_models.right(upscaled_post_stoch), logic_loss_object.ltn_models.up(upscaled_post_stoch)) #recon_mean = decoder(post_stoch)
                 
                 actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
                 ltn_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, obs[:, t]) #if train_all else 0.
 
                 #if epoch >= epochs//2:
-                #logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) #if logic_models_path is not None else 0.
-                logic_loss = logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, upscaled_post_stoch)
+                logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) #if logic_models_path is not None else 0.
+                #logic_loss = logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, recon_mean) #logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, upscaled_post_stoch)
                 #else:
                 #    logic_loss = 0.
                 
@@ -208,13 +208,11 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                     torch.tensor(free_nats).to(device), kld
                 )
 
-                """
                 fixed_std = 1.0
                 dist = torch.distributions.Normal(recon_mean, fixed_std)
                 recon_log_prob = dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()
                 recon_loss += -recon_log_prob
-                """
-
+                
                 kld_loss += kld
                 stoch = post_stoch
 
@@ -228,7 +226,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
 
             l += loss.item()
             logic_l += logic_loss_total.item()
-            #rl += recon_loss.item()
+            rl += recon_loss.item()
             kld_l += kld_loss.item()
         
         rollout_metrics = eval_rollout(dataset_test, encoder, rssm, decoder, logic_loss_object, upscale_network)
@@ -238,12 +236,12 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         metrics = {
             "Epoch": epoch,
             "Loss": l/total_iterations,
-            #"Reconstruction Loss Train": rl/total_iterations,
+            "Reconstruction Loss Train": rl/total_iterations,
             "Logic Loss Train": logic_l/total_iterations,
             "KLD Loss Train": kld_l/total_iterations,
             "Ground Truth": rollout_metrics["Ground Truth"],
             "Imagination": rollout_metrics["Imagination"],
-            #"Reconstruction Loss Test": loss_metrics["reconstruction_logprob"],
+            "Reconstruction Loss Test": loss_metrics["reconstruction_logprob"],
             "KLD Loss Test": loss_metrics["kl_loss"],
             "Logic Loss Test": loss_metrics["logic_loss"],
             "LTN Predictions": ltn_predictions["LTN Reconstruction"],
