@@ -45,7 +45,7 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, upscale_networ
             
             actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
             logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, mean) if logic_loss_object is not None else "-"
-            #logic_loss += logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, upscaled_post_stoch)
+            logic_loss += logic_loss_object.set_encodings_equal(obs[:, t-1], actions_batch, f, r, u) #logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, upscaled_post_stoch)
 
             kld = torch.distributions.kl_divergence(
                 torch.distributions.Normal(post_mean, post_std),
@@ -192,7 +192,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
 
                 #if epoch >= epochs//2:
                 logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, recon_mean) #if logic_models_path is not None else 0.
-                #logic_loss = logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, recon_mean) #logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, upscaled_post_stoch)
+                logic_loss += logic_loss_object.set_encodings_equal(obs[:, t-1], actions_batch, f, r, u) #logic_loss_object.get_encoding_loss(obs[:, t-1], actions_batch, upscaled_post_stoch)
                 #else:
                 #    logic_loss = 0.
                 
@@ -258,6 +258,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     logic_loss_object.ltn_models.save_all_models(model_save_path)
     save_model(decoder, epochs, "decoder", model_save_path)
     save_model(rssm, epochs, "rssm", model_save_path)
+    save_model(upscale_network, epochs, "upscale_network", model_save_path)
     
 
 

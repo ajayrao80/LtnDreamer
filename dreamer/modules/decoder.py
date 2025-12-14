@@ -5,7 +5,6 @@ class Decoder(nn.Module):
     def __init__(self, embed_dim=1024, obs_shape=(3, 128, 128)):
         super().__init__()
         c, h, w = obs_shape
-        print(embed_dim)
         self.fc = nn.Linear(embed_dim, 1024)
 
         self.deconv = nn.Sequential(

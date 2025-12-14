@@ -17,8 +17,13 @@ class LogicLoss:
         loss = 1. - sat_val
         return loss
     
-    def get_encoding_loss(self, state, action, next_state):
-        sat_val = self.LTNObject.compute_encoder_only_sat(state, action, next_state)
+    def set_encodings_equal(self, state, action, f, r, u):
+        sat_val = self.LTNObject.set_encodings_equal(state, action, f, r, u) #, f, r, u)
+        loss = 1. - sat_val
+        return loss
+    
+    def get_encoding_loss(self, state, action, next_state): #, f, r, u):
+        sat_val = self.LTNObject.compute_encoder_only_sat(state, action, next_state) #, f, r, u)
         loss = 1. - sat_val
         return loss
     

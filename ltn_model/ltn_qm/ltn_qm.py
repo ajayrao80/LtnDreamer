@@ -72,8 +72,8 @@ class LTNRules:
     
         #print(f"sat agg: {sat_agg}")
         return sat_agg
-
-    def compute_encoder_only_sat(self, init_image, actions_, next_image):
+    
+    def set_encodings_equal(self, init_image, actions_, f, r, u):
         # cube 1 -----------------------------------------------------------
         init_image_a_0 = ltn.Variable("init_image_a_0", init_image[actions_.squeeze(1) == 0]) if init_image[actions_.squeeze(1) == 0].shape[0] != 0 else None
         init_image_a_1 = ltn.Variable("init_image_a_1", init_image[actions_.squeeze(1) == 1]) if init_image[actions_.squeeze(1) == 1].shape[0] != 0 else None
@@ -83,12 +83,26 @@ class LTNRules:
         init_image_a_5 = ltn.Variable("init_image_a_5", init_image[actions_.squeeze(1) == 5]) if init_image[actions_.squeeze(1) == 5].shape[0] != 0 else None
 
         # cube 2 -----------------------------------------------------------
-        next_image_a_0 = ltn.Variable("next_image_a_0", next_image[actions_.squeeze(1) == 0]) if next_image[actions_.squeeze(1) == 0].shape[0] != 0 else None
-        next_image_a_1 = ltn.Variable("next_image_a_1", next_image[actions_.squeeze(1) == 1]) if next_image[actions_.squeeze(1) == 1].shape[0] != 0 else None
-        next_image_a_2 = ltn.Variable("next_image_a_2", next_image[actions_.squeeze(1) == 2]) if next_image[actions_.squeeze(1) == 2].shape[0] != 0 else None
-        next_image_a_3 = ltn.Variable("next_image_a_3", next_image[actions_.squeeze(1) == 3]) if next_image[actions_.squeeze(1) == 3].shape[0] != 0 else None
-        next_image_a_4 = ltn.Variable("next_image_a_4", next_image[actions_.squeeze(1) == 4]) if next_image[actions_.squeeze(1) == 4].shape[0] != 0 else None
-        next_image_a_5 = ltn.Variable("next_image_a_5", next_image[actions_.squeeze(1) == 5]) if next_image[actions_.squeeze(1) == 5].shape[0] != 0 else None
+        next_latent_a_0_f = ltn.Variable("next_latent_a_0_f", f[actions_.squeeze(1) == 0]) if f[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        next_latent_a_1_f = ltn.Variable("next_latent_a_1_f", f[actions_.squeeze(1) == 1]) if f[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        next_latent_a_2_f = ltn.Variable("next_latent_a_2_f", f[actions_.squeeze(1) == 2]) if f[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        next_latent_a_3_f = ltn.Variable("next_latent_a_3_f", f[actions_.squeeze(1) == 3]) if f[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        next_latent_a_4_f = ltn.Variable("next_latent_a_4_f", f[actions_.squeeze(1) == 4]) if f[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        next_latent_a_5_f = ltn.Variable("next_latent_a_5_f", f[actions_.squeeze(1) == 5]) if f[actions_.squeeze(1) == 5].shape[0] != 0 else None
+
+        next_latent_a_0_r = ltn.Variable("next_latent_a_0_r", r[actions_.squeeze(1) == 0]) if r[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        next_latent_a_1_r = ltn.Variable("next_latent_a_1_r", r[actions_.squeeze(1) == 1]) if r[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        next_latent_a_2_r = ltn.Variable("next_latent_a_2_r", r[actions_.squeeze(1) == 2]) if r[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        next_latent_a_3_r = ltn.Variable("next_latent_a_3_r", r[actions_.squeeze(1) == 3]) if r[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        next_latent_a_4_r = ltn.Variable("next_latent_a_4_r", r[actions_.squeeze(1) == 4]) if r[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        next_latent_a_5_r = ltn.Variable("next_latent_a_5_r", r[actions_.squeeze(1) == 5]) if r[actions_.squeeze(1) == 5].shape[0] != 0 else None
+
+        next_latent_a_0_u = ltn.Variable("next_latent_a_0_u", u[actions_.squeeze(1) == 0]) if u[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        next_latent_a_1_u = ltn.Variable("next_latent_a_1_u", u[actions_.squeeze(1) == 1]) if u[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        next_latent_a_2_u = ltn.Variable("next_latent_a_2_u", u[actions_.squeeze(1) == 2]) if u[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        next_latent_a_3_u = ltn.Variable("next_latent_a_3_u", u[actions_.squeeze(1) == 3]) if u[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        next_latent_a_4_u = ltn.Variable("next_latent_a_4_u", u[actions_.squeeze(1) == 4]) if u[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        next_latent_a_5_u = ltn.Variable("next_latent_a_5_u", u[actions_.squeeze(1) == 5]) if u[actions_.squeeze(1) == 5].shape[0] != 0 else None
 
         actions_a_0 = ltn.Variable("actions_a_0", actions_[actions_.squeeze(1) == 0]) if actions_[actions_.squeeze(1) == 0].shape[0] != 0 else None
         actions_a_1 = ltn.Variable("actions_a_1", actions_[actions_.squeeze(1) == 1]) if actions_[actions_.squeeze(1) == 1].shape[0] != 0 else None
@@ -96,7 +110,66 @@ class LTNRules:
         actions_a_3 = ltn.Variable("actions_a_3", actions_[actions_.squeeze(1) == 3]) if actions_[actions_.squeeze(1) == 3].shape[0] != 0 else None
         actions_a_4 = ltn.Variable("actions_a_4", actions_[actions_.squeeze(1) == 4]) if actions_[actions_.squeeze(1) == 4].shape[0] != 0 else None
         actions_a_5 = ltn.Variable("actions_a_5", actions_[actions_.squeeze(1) == 5]) if actions_[actions_.squeeze(1) == 5].shape[0] != 0 else None
-        reconstruction_axioms_based_on_actions_1 = self.get_encoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5)
+        
+        equality_contraints = self.get_equality_constraints(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5,
+                                                       next_latent_a_0_f, next_latent_a_1_f, next_latent_a_2_f, next_latent_a_3_f, next_latent_a_4_f, next_latent_a_5_f,
+                                                       next_latent_a_0_r, next_latent_a_1_r, next_latent_a_2_r, next_latent_a_3_r, next_latent_a_4_r, next_latent_a_5_r,
+                                                       next_latent_a_0_u, next_latent_a_1_u, next_latent_a_2_u, next_latent_a_3_u, next_latent_a_4_u, next_latent_a_5_u,
+                                                       actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5)
+        sat_agg = SatAgg(*equality_contraints)
+        return sat_agg
+
+    def compute_encoder_only_sat(self, init_image, actions_, next_state): #, f, r, u):
+        # cube 1 -----------------------------------------------------------
+        init_image_a_0 = ltn.Variable("init_image_a_0", init_image[actions_.squeeze(1) == 0]) if init_image[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        init_image_a_1 = ltn.Variable("init_image_a_1", init_image[actions_.squeeze(1) == 1]) if init_image[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        init_image_a_2 = ltn.Variable("init_image_a_2", init_image[actions_.squeeze(1) == 2]) if init_image[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        init_image_a_3 = ltn.Variable("init_image_a_3", init_image[actions_.squeeze(1) == 3]) if init_image[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        init_image_a_4 = ltn.Variable("init_image_a_4", init_image[actions_.squeeze(1) == 4]) if init_image[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        init_image_a_5 = ltn.Variable("init_image_a_5", init_image[actions_.squeeze(1) == 5]) if init_image[actions_.squeeze(1) == 5].shape[0] != 0 else None
+
+        # cube 2 -----------------------------------------------------------
+        next_latent_a_0 = ltn.Variable("next_image_a_0", next_state[actions_.squeeze(1) == 0]) if next_state[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        next_latent_a_1 = ltn.Variable("next_image_a_1", next_state[actions_.squeeze(1) == 1]) if next_state[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        next_latent_a_2 = ltn.Variable("next_image_a_2", next_state[actions_.squeeze(1) == 2]) if next_state[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        next_latent_a_3 = ltn.Variable("next_image_a_3", next_state[actions_.squeeze(1) == 3]) if next_state[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        next_latent_a_4 = ltn.Variable("next_image_a_4", next_state[actions_.squeeze(1) == 4]) if next_state[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        next_latent_a_5 = ltn.Variable("next_image_a_5", next_state[actions_.squeeze(1) == 5]) if next_state[actions_.squeeze(1) == 5].shape[0] != 0 else None
+
+        """
+        next_latent_a_0_f = ltn.Variable("next_image_a_0_f", f[actions_.squeeze(1) == 0]) if f[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        next_latent_a_1_f = ltn.Variable("next_image_a_1_f", f[actions_.squeeze(1) == 1]) if f[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        next_latent_a_2_f = ltn.Variable("next_image_a_2_f", f[actions_.squeeze(1) == 2]) if f[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        next_latent_a_3_f = ltn.Variable("next_image_a_3_f", f[actions_.squeeze(1) == 3]) if f[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        next_latent_a_4_f = ltn.Variable("next_image_a_4_f", f[actions_.squeeze(1) == 4]) if f[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        next_latent_a_5_f = ltn.Variable("next_image_a_5_f", f[actions_.squeeze(1) == 5]) if f[actions_.squeeze(1) == 5].shape[0] != 0 else None
+
+        next_latent_a_0_r = ltn.Variable("next_image_a_0_r", r[actions_.squeeze(1) == 0]) if r[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        next_latent_a_1_r = ltn.Variable("next_image_a_1_r", r[actions_.squeeze(1) == 1]) if r[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        next_latent_a_2_r = ltn.Variable("next_image_a_2_r", r[actions_.squeeze(1) == 2]) if r[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        next_latent_a_3_r = ltn.Variable("next_image_a_3_r", r[actions_.squeeze(1) == 3]) if r[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        next_latent_a_4_r = ltn.Variable("next_image_a_4_r", r[actions_.squeeze(1) == 4]) if r[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        next_latent_a_5_r = ltn.Variable("next_image_a_5_r", r[actions_.squeeze(1) == 5]) if r[actions_.squeeze(1) == 5].shape[0] != 0 else None
+
+        next_latent_a_0_u = ltn.Variable("next_image_a_0_u", u[actions_.squeeze(1) == 0]) if u[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        next_latent_a_1_u = ltn.Variable("next_image_a_1_u", u[actions_.squeeze(1) == 1]) if u[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        next_latent_a_2_u = ltn.Variable("next_image_a_2_u", u[actions_.squeeze(1) == 2]) if u[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        next_latent_a_3_u = ltn.Variable("next_image_a_3_u", u[actions_.squeeze(1) == 3]) if u[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        next_latent_a_4_u = ltn.Variable("next_image_a_4_u", u[actions_.squeeze(1) == 4]) if u[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        next_latent_a_5_u = ltn.Variable("next_image_a_5_u", u[actions_.squeeze(1) == 5]) if u[actions_.squeeze(1) == 5].shape[0] != 0 else None
+        """
+
+        actions_a_0 = ltn.Variable("actions_a_0", actions_[actions_.squeeze(1) == 0]) if actions_[actions_.squeeze(1) == 0].shape[0] != 0 else None
+        actions_a_1 = ltn.Variable("actions_a_1", actions_[actions_.squeeze(1) == 1]) if actions_[actions_.squeeze(1) == 1].shape[0] != 0 else None
+        actions_a_2 = ltn.Variable("actions_a_2", actions_[actions_.squeeze(1) == 2]) if actions_[actions_.squeeze(1) == 2].shape[0] != 0 else None
+        actions_a_3 = ltn.Variable("actions_a_3", actions_[actions_.squeeze(1) == 3]) if actions_[actions_.squeeze(1) == 3].shape[0] != 0 else None
+        actions_a_4 = ltn.Variable("actions_a_4", actions_[actions_.squeeze(1) == 4]) if actions_[actions_.squeeze(1) == 4].shape[0] != 0 else None
+        actions_a_5 = ltn.Variable("actions_a_5", actions_[actions_.squeeze(1) == 5]) if actions_[actions_.squeeze(1) == 5].shape[0] != 0 else None
+        reconstruction_axioms_based_on_actions_1 = self.get_encoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, 
+                                                                          next_latent_a_0, next_latent_a_1, next_latent_a_2, next_latent_a_3, next_latent_a_4, next_latent_a_5, 
+                                                                          #next_latent_a_0_r, next_latent_a_1_r, next_latent_a_2_r, next_latent_a_3_r, next_latent_a_4_r, next_latent_a_5_r, 
+                                                                          #next_latent_a_0_u, next_latent_a_1_u, next_latent_a_2_u, next_latent_a_3_u, next_latent_a_4_u, next_latent_a_5_u, 
+                                                                          actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5)
         #reconstruction_axioms_based_on_actions_2 = self.get_decoder_rules(init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5)
 
         sat_agg = SatAgg(*reconstruction_axioms_based_on_actions_1)
@@ -132,6 +205,24 @@ class LTNRules:
         sat_agg = SatAgg(*reconstruction_axioms_based_on_actions)
 
         return sat_agg 
+    
+    def get_equality_constraints(self, init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5,
+                                                       next_latent_a_0_f, next_latent_a_1_f, next_latent_a_2_f, next_latent_a_3_f, next_latent_a_4_f, next_latent_a_5_f,
+                                                       next_latent_a_0_r, next_latent_a_1_r, next_latent_a_2_r, next_latent_a_3_r, next_latent_a_4_r, next_latent_a_5_r,
+                                                       next_latent_a_0_u, next_latent_a_1_u, next_latent_a_2_u, next_latent_a_3_u, next_latent_a_4_u, next_latent_a_5_u,
+                                                       actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5):
+        
+        rule_1 = self.encoder_constraints.EncoderEqRuleA0(init_image_a_0, next_latent_a_0_r, next_latent_a_0_u, actions_a_0) if init_image_a_0 is not None else None  
+        rule_2 = self.encoder_constraints.EncoderEqRuleA1(init_image_a_1, next_latent_a_1_f, next_latent_a_1_r, actions_a_1) if init_image_a_1 is not None else None  
+        rule_3 = self.encoder_constraints.EncoderEqRuleA2(init_image_a_2, next_latent_a_2_f, next_latent_a_2_u, actions_a_2) if init_image_a_2 is not None else None  
+        rule_4 = self.encoder_constraints.EncoderEqRuleA3(init_image_a_3, next_latent_a_3_r, next_latent_a_3_u, actions_a_3) if init_image_a_3 is not None else None  
+        rule_5 = self.encoder_constraints.EncoderEqRuleA4(init_image_a_4, next_latent_a_4_f, next_latent_a_4_r, actions_a_4) if init_image_a_4 is not None else None  
+        rule_6 = self.encoder_constraints.EncoderEqRuleA5(init_image_a_5, next_latent_a_5_f, next_latent_a_5_r, actions_a_5) if init_image_a_5 is not None else None  
+
+        rules = [rule_1, rule_2, rule_3, rule_4, rule_5, rule_6]
+        rules = [rule for rule in rules if rule is not None]
+        return rules
+        
 
     def get_encoder_rules(self, init_image_a_0, init_image_a_1, init_image_a_2, init_image_a_3, init_image_a_4, init_image_a_5, next_image_a_0, next_image_a_1, next_image_a_2, next_image_a_3, next_image_a_4, next_image_a_5, actions_a_0, actions_a_1, actions_a_2, actions_a_3, actions_a_4, actions_a_5):
         rule_1 = self.encoder_constraints.EncoderRuleA0(init_image_a_0, next_image_a_0, actions_a_0) if init_image_a_0 is not None else None  
