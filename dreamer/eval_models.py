@@ -218,23 +218,25 @@ def get_episode_metrics(episode, encoder, rssm, decoder, logic_loss_object, upsc
             # similarity score for cropped faces
             action = int(actions[:, t-1].max().item())
             state = get_next_state(state, action) 
-            similarity_score = 1.
+            #similarity_score = 1.
             f_gt, r_gt, u_gt = get_image_parts(obs[:, t][0].cpu().numpy().transpose(1, 2, 0))
             f_pred, r_pred, u_pred = get_image_parts(mean[0].cpu().numpy().transpose(1, 2, 0))
             f_sim = get_similarity_score(f_gt, f_pred).item()
             r_sim = get_similarity_score(r_gt, r_pred).item()
             u_sim = get_similarity_score(u_gt, u_pred).item()
+            
+            """
             compared_faces = 0
             if state[0][0] <= 2:
-                similarity_score += f_sim
+                #similarity_score += f_sim
                 compared_faces += 1
             if state[0][1] <= 2:
-                similarity_score += r_sim
+                #similarity_score += r_sim
                 compared_faces += 1
             if state[0][2] <= 2:
                 compared_faces += 1
-                similarity_score += u_sim
-
+                #similarity_score += u_sim
+            """
             #if compared_faces > 0:
             #    step_errors["similarity_score"][t-1] = (f_sim + r_sim + u_sim) / (compared_faces)
             #else:
@@ -247,6 +249,7 @@ def get_episode_metrics(episode, encoder, rssm, decoder, logic_loss_object, upsc
     return step_errors
 
 def main(dataset_test_path, vanilla_model_path, logic_models_path, vanilla_model=True):
+    logic_models_path_best = "../dreamer_models/ltn/ltn_injected_dreamer_epochs_1000_100p_dataset"
     dataset_test = np.load(dataset_test_path)
     obs = dataset_test["observation"]
     actions = dataset_test["action"]
@@ -257,7 +260,7 @@ def main(dataset_test_path, vanilla_model_path, logic_models_path, vanilla_model
     device = "cuda" if torch.cuda.is_available() else 'cpu'
     upscale_network = UpscaleNetwork(stoch_dim).to(device)
     upscale_network.load_state_dict(torch.load(f"{logic_models_path}/world_model_upscale_network_1000", weights_only=True, map_location=torch.device(device)))
-    logic_loss_object = LogicLoss(logic_models_path, model_name_digits=None, train_all=False)
+    logic_loss_object = LogicLoss(logic_models_path_best, model_name_digits=None, train_all=False)
 
     if vanilla_model:
         embed_dim = 200
@@ -273,6 +276,8 @@ def main(dataset_test_path, vanilla_model_path, logic_models_path, vanilla_model
         deter_dim = 200
         rssm = RSSM(action_dim, stoch_dim, deter_dim, embed_dim).to(device)
         rssm.load_state_dict(torch.load(f"{logic_models_path}/world_model_rssm_1000", weights_only=True, map_location=torch.device(device)))
+        logic_ltn = LogicLoss(logic_models_path, model_name_digits=None, train_all=False)
+        decoder = logic_ltn.ltn_models.dec
     
     num_episodes = int(len(obs)/T)
     mse_errors = torch.zeros(int(len(obs)/T), T-1, device=device)
@@ -286,7 +291,7 @@ def main(dataset_test_path, vanilla_model_path, logic_models_path, vanilla_model
         if vanilla_model:
             error = get_episode_metrics(episode, encoder, rssm, decoder, logic_loss_object, upscale_network) 
         else:
-            error = get_episode_metrics(episode, encoder_ltn, rssm, logic_loss_object.ltn_models.dec, logic_loss_object, upscale_network, vanilla_dreamer=False)     
+            error = get_episode_metrics(episode, encoder_ltn, rssm, decoder, logic_loss_object, upscale_network, vanilla_dreamer=False) #get_episode_metrics(episode, encoder_ltn, rssm, logic_loss_object.ltn_models.dec, logic_loss_object, upscale_network, vanilla_dreamer=False)     
         mse_errors[count, :] = error["mse_step_error"]
         logic_errors[count, :] = error["logic_step_error"]
         similarity_scores[count, :] = error["similarity_score"]
