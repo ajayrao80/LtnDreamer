@@ -219,8 +219,8 @@ def get_episode_metrics(episode, encoder, rssm, decoder, logic_loss_object, upsc
             action = int(actions[:, t-1].max().item())
             state = get_next_state(state, action) 
             similarity_score = 1.
-            f_gt, r_gt, u_gt = get_image_parts(obs[:, t][0].numpy().transpose(1, 2, 0))
-            f_pred, r_pred, u_pred = get_image_parts(mean[0].numpy().transpose(1, 2, 0))
+            f_gt, r_gt, u_gt = get_image_parts(obs[:, t][0].cpu().numpy().transpose(1, 2, 0))
+            f_pred, r_pred, u_pred = get_image_parts(mean[0].cpu().numpy().transpose(1, 2, 0))
             f_sim = get_similarity_score(f_gt, f_pred).item()
             r_sim = get_similarity_score(r_gt, r_pred).item()
             u_sim = get_similarity_score(u_gt, u_pred).item()
