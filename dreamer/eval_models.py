@@ -174,10 +174,11 @@ def get_episode_metrics(episode, encoder, rssm, decoder, logic_loss_object, upsc
     decoder.eval()
     rssm.eval()
     B = 1
+    device = "cuda" if torch.cuda.is_available() else 'cpu'
     
     with torch.no_grad():
-        obs = torch.tensor(episode["observation"]).unsqueeze(0)
-        actions = torch.tensor(episode["actions"]).unsqueeze(0)
+        obs = torch.tensor(episode["observation"]).unsqueeze(0).to(device)
+        actions = torch.tensor(episode["actions"]).unsqueeze(0).to(device)
         T = obs.shape[1]
 
         step_errors = { "mse_step_error": torch.zeros(T-1), "logic_step_error": torch.zeros(T-1), "similarity_score": torch.zeros(T-1)}
