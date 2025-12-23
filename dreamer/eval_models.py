@@ -31,28 +31,33 @@ def crop_to_content(pil_img):
     # Crop the original PIL image
     return pil_img.crop((x, y, x+w, y+h))
 
+def safe_cosine(u, v):
+    if np.linalg.norm(u) == 0 or np.linalg.norm(v) == 0:
+        return 0.0   # or np.nan, or -1.0 depending on meaning
+    return 1 - cosine(u, v)
+
 def get_similarity_score(img1_pil, img2_pil):
     # Define the transformation pipeline
     preprocess = transforms.Compose([
-        transforms.Resize((224, 224)),
+        #transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
-    img1_cropped = crop_to_content(img1_pil)
-    img2_cropped = crop_to_content(img2_pil)
+    #img1_cropped = crop_to_content(img1_pil)
+    #img2_cropped = crop_to_content(img2_pil)
     
-    img1_rgb = img1_cropped.convert("RGB")
-    img2_rgb = img2_cropped.convert("RGB")
+    #img1_rgb = img1_pil.convert("RGB")
+    #img2_rgb = img2_pil.convert("RGB")
 
-    t1 = preprocess(img1_rgb).unsqueeze(0)
-    t2 = preprocess(img2_rgb).unsqueeze(0)
-    
-    return 1-cosine(t1.flatten(), t2.flatten()) 
+    t1 = torch.tensor(img1_pil).unsqueeze(0) #preprocess(img1_pil).unsqueeze(0)
+    t2 = torch.tensor(img2_pil).unsqueeze(0) #preprocess(img2_pil).unsqueeze(0)
+
+    return safe_cosine(t1.flatten(), t2.flatten()) 
 
 def get_image_parts(img):
   result = []
-  image = (img * 255).astype(np.uint8)
-  img_ = Image.fromarray(image)
+  image = img #(img * 255).astype(np.uint8)
+  img_ = image #Image.fromarray(image)
 
   # Right face
   points_right = [
@@ -78,28 +83,26 @@ def get_image_parts(img):
       (29, 55)   # bottom-left
   ] 
 
-  mask_f = Image.new("L", img_.size, 0)
-  draw = ImageDraw.Draw(mask_f)
-  draw.polygon(points_front, fill=255)
-  result_front = Image.new("RGB", img_.size)
-  result_front.paste(img_, (0, 0), mask_f)
-  result.append(result_front)
+  mask_front = np.zeros((128, 128), dtype=np.uint8)
+  pts_front = np.array(points_front, dtype=np.int32)
+  cv2.fillPoly(mask_front, [pts_front], 1)
+  mask_front = mask_front.astype(bool)
 
-  mask_r = Image.new("L", img_.size, 0)
-  draw = ImageDraw.Draw(mask_r)
-  draw.polygon(points_right, fill=255)
-  result_right = Image.new("RGB", img_.size)
-  result_right.paste(img_, (0, 0), mask_r)
-  result.append(result_right)
+  mask_right = np.zeros((128, 128), dtype=np.uint8)
+  pts_right = np.array(points_right, dtype=np.int32)
+  cv2.fillPoly(mask_right, [pts_right], 1)
+  mask_right = mask_right.astype(bool)
 
-  mask_u = Image.new("L", img_.size, 0)
-  draw = ImageDraw.Draw(mask_u)
-  draw.polygon(points_up, fill=255)
-  result_up = Image.new("RGB", img_.size)
-  result_up.paste(img_, (0, 0), mask_u)
-  result.append(result_up)
+  mask_up = np.zeros((128, 128), dtype=np.uint8)
+  pts_up = np.array(points_up, dtype=np.int32)
+  cv2.fillPoly(mask_up, [pts_up], 1)
+  mask_up = mask_up.astype(bool)
 
-  return result
+  masked_obs_front = img_[mask_front]
+  masked_obs_right = img_[mask_right]
+  masked_obs_up = img_[mask_up]
+
+  return masked_obs_front, masked_obs_right, masked_obs_up
 
 def get_next_state(states, actions_ids):
     tu = torch.tensor([
