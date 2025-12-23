@@ -33,7 +33,7 @@ def crop_to_content(pil_img):
 
 def safe_cosine(u, v):
     if np.linalg.norm(u) == 0 or np.linalg.norm(v) == 0:
-        return 0.0   # or np.nan, or -1.0 depending on meaning
+        return torch.tensor(0.0)   # or np.nan, or -1.0 depending on meaning
     return 1 - cosine(u, v)
 
 def get_similarity_score(img1_pil, img2_pil):
