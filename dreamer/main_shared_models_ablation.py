@@ -219,7 +219,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             #logic_weight = recon_loss.item()
             #logic_loss_total = logic_weight*logic_loss_total
             kld_loss = (kld_loss * beta)
-            loss = kld_loss #+ logic_loss_total #+ recon_loss
+            loss = kld_loss + recon_loss #logic_loss_total 
             optim_model.zero_grad()
             loss.backward()
             optim_model.step()
