@@ -10,7 +10,7 @@ Exists = ltn.Quantifier(ltn.fuzzy_ops.AggregPMean(p=2), quantifier="e")
 SatAgg = ltn.fuzzy_ops.SatAgg()
 Or = ltn.Connective(ltn.fuzzy_ops.OrProbSum())
 Sim = ltn.Predicate(func=lambda x, y: cosine_similarity(x, y))
-Eq = ltn.Predicate(func=lambda x, y: equal(x, y)) 
+Eq = ltn.Predicate(func=lambda x, y: cosine_similarity(x, y)) #ltn.Predicate(func=lambda x, y: equal(x, y)) 
 
 
 
