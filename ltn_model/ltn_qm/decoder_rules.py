@@ -7,42 +7,42 @@ class DecoderRules:
         # ltn functions and predicates
         self.ltn_F_and_P = ltn_F_and_P  
 
-    def DecoderRuleA0(self, init_image, next_image, action, p=3):
+    def DecoderRuleA0(self, init_image, next_image, action, p=5):
         ltn.diag(init_image, next_image, action)
         return Forall([init_image, next_image, action],
             #Sim(self.ltn_F_and_P.Dec(self.ltn_F_and_P.Front(init_image), self.ltn_F_and_P.RotPlus(self.ltn_F_and_P.Right(init_image)), self.ltn_F_and_P.Front(init_image)), next_image), p=p
             Sim(self.ltn_F_and_P.Dec(self.ltn_F_and_P.Front(init_image), self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Right(init_image), action), self.ltn_F_and_P.Front(init_image)), next_image), p=p 
         )
 
-    def DecoderRuleA1(self,init_image, next_image, action, p=3):
+    def DecoderRuleA1(self,init_image, next_image, action, p=5):
         ltn.diag(init_image, next_image, action)
         return Forall([init_image, next_image, action],
             #Sim(self.ltn_F_and_P.Dec(self.ltn_F_and_P.Up(init_image), self.ltn_F_and_P.RotMinus(self.ltn_F_and_P.Right(init_image)), self.ltn_F_and_P.Up(init_image)), next_image), p=p
             Sim(self.ltn_F_and_P.Dec(self.ltn_F_and_P.Up(init_image), self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Right(init_image), action), self.ltn_F_and_P.Up(init_image)), next_image), p=p 
         )
     
-    def DecoderRuleA2(self, init_image, next_image, action, p=3):
+    def DecoderRuleA2(self, init_image, next_image, action, p=5):
         ltn.diag(init_image, next_image, action)
         return Forall([init_image, next_image, action],
             #Sim(self.ltn_F_and_P.Dec(self.ltn_F_and_P.Right(init_image), self.ltn_F_and_P.Right(init_image), self.ltn_F_and_P.RotPlus(self.ltn_F_and_P.Up(init_image))), next_image), p=p
             Sim(self.ltn_F_and_P.Dec(self.ltn_F_and_P.Right(init_image), self.ltn_F_and_P.Right(init_image), self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Up(init_image), action)), next_image), p=p 
         )
 
-    def DecoderRuleA3(self, init_image, next_image, action, p=3):
+    def DecoderRuleA3(self, init_image, next_image, action, p=5):
         ltn.diag(init_image, next_image, action)
         return Forall([init_image, next_image, action],
             #Sim(self.ltn_F_and_P.Dec(self.ltn_F_and_P.Front(init_image), self.ltn_F_and_P.RotMinus(self.ltn_F_and_P.Up(init_image)), self.ltn_F_and_P.Front(init_image)), next_image), p=p
             Sim(self.ltn_F_and_P.Dec(self.ltn_F_and_P.Front(init_image), self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Up(init_image), action), self.ltn_F_and_P.Front(init_image)), next_image), p=p 
         )
 
-    def DecoderRuleA4(self, init_image, next_image, action, p=3):
+    def DecoderRuleA4(self, init_image, next_image, action, p=5):
         ltn.diag(init_image, next_image, action)
         return Forall([init_image, next_image, action],
             #Sim(self.ltn_F_and_P.Dec(self.ltn_F_and_P.RotPlus(self.ltn_F_and_P.Front(init_image)), self.ltn_F_and_P.RotPlus(self.ltn_F_and_P.Up(init_image)), self.ltn_F_and_P.Up(init_image)), next_image), p=p
             Sim(self.ltn_F_and_P.Dec(self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Front(init_image), action), self.ltn_F_and_P.RotChange(self.ltn_F_and_P.Up(init_image), action), self.ltn_F_and_P.Up(init_image)), next_image), p=p 
         )
 
-    def DecoderRuleA5(self, init_image, next_image, action, p=3):
+    def DecoderRuleA5(self, init_image, next_image, action, p=5):
         ltn.diag(init_image, next_image, action)
         return Forall([init_image, next_image, action],
             #Sim(self.ltn_F_and_P.Dec(self.ltn_F_and_P.RotMinus(self.ltn_F_and_P.Front(init_image)), self.ltn_F_and_P.Right(init_image), self.ltn_F_and_P.RotMinus(self.ltn_F_and_P.Right(init_image))), next_image), p=p
