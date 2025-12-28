@@ -40,8 +40,8 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, upscale_networ
             
             f, r, u = upscale_network(post_stoch) #upscaled_post_stoch = upscale_network(post_stoch)
             mean = decoder(f, r, u) #decoder(logic_loss_object.ltn_models.front(upscaled_post_stoch), logic_loss_object.ltn_models.right(upscaled_post_stoch), logic_loss_object.ltn_models.up(upscaled_post_stoch)) #mean = decoder(post_stoch)
-            #dist = torch.distributions.Normal(mean, 1.0)  # Decoder returns mean
-            #log_prob = -dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()  # Per batch
+            dist = torch.distributions.Normal(mean, 1.0)  # Decoder returns mean
+            log_prob = -dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()  # Per batch
             
             actions_batch = actions[:, t-1].max(dim=1, keepdim=True).values #.squeeze(1)
             logic_loss = logic_loss_object.compute_logic_loss(obs[:, t-1], actions_batch, mean) if logic_loss_object is not None else "-"
@@ -53,13 +53,13 @@ def eval_loss(dataset, encoder, rssm, decoder, logic_loss_object, upscale_networ
             ).mean()
 
             kld_loss_total += kld
-            #recon_loss_total += log_prob
+            recon_loss_total += log_prob
             logic_loss_total = logic_loss_total+logic_loss if logic_loss_object is not None else "-"
 
             stoch = post_stoch
 
         metrics = {
-            #'reconstruction_logprob': recon_loss_total.item(),
+            'reconstruction_logprob': recon_loss_total.item(),
             'kl_loss': kld_loss_total.item(),
             'logic_loss': logic_loss_total.item() * logic_weight
         }
@@ -208,10 +208,10 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
                     torch.tensor(free_nats).to(device), kld
                 )
 
-                #fixed_std = 1.0
-                #dist = torch.distributions.Normal(recon_mean, fixed_std)
-                #recon_log_prob = dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()
-                #recon_loss += -recon_log_prob
+                fixed_std = 1.0
+                dist = torch.distributions.Normal(recon_mean, fixed_std)
+                recon_log_prob = dist.log_prob(obs[:, t]).sum(dim=[1,2,3]).mean()
+                recon_loss += -recon_log_prob
                 
                 kld_loss += kld
                 stoch = post_stoch
@@ -226,7 +226,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
 
             l += loss.item()
             logic_l += logic_loss_total.item()
-            #rl += recon_loss.item()
+            rl += recon_loss.item()
             kld_l += kld_loss.item()
         
         rollout_metrics = eval_rollout(dataset_test, encoder, rssm, decoder, logic_loss_object, upscale_network)
@@ -236,12 +236,12 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         metrics = {
             "Epoch": epoch,
             "Loss": l/total_iterations,
-            #"Reconstruction Loss Train": rl/total_iterations,
+            "Reconstruction Loss Train": rl/total_iterations,
             "Logic Loss Train": logic_l/total_iterations,
             "KLD Loss Train": kld_l/total_iterations,
             "Ground Truth": rollout_metrics["Ground Truth"],
             "Imagination": rollout_metrics["Imagination"],
-            #"Reconstruction Loss Test": loss_metrics["reconstruction_logprob"],
+            "Reconstruction Loss Test": loss_metrics["reconstruction_logprob"],
             "KLD Loss Test": loss_metrics["kl_loss"],
             "Logic Loss Test": loss_metrics["logic_loss"],
             "LTN Predictions": ltn_predictions["LTN Reconstruction"],
