@@ -251,35 +251,35 @@ def get_episode_metrics(episode, encoder, rssm, decoder, logic_loss_object, upsc
             
     return step_errors
 
-def main(dataset_test_path, vanilla_model_path, logic_models_path, vanilla_model=True):
-    logic_models_path_best = "../dreamer_models/ltn/ltn_injected_dreamer_epochs_1000_100p_dataset"
+def main(dataset_test_path, vanilla_model_path, logic_models_path, world_model_upscale_network_name, world_model_encoder_name, world_model_decoder_name, world_model_rssm_name, ltn_front_name, ltn_right_name, ltn_up_name, ltn_dec_name, ltn_rot_change_name, embed_dim, deter_dim, stoch_dim, episode_len=5, logic_models_path_best=None, vanilla_model=True):
+    logic_models_path_best = logic_models_path_best if logic_models_path_best is not None else logic_models_path #"../dreamer_models/ltn/ltn_injected_dreamer_epochs_1000_100p_dataset"
     dataset_test = np.load(dataset_test_path)
     obs = dataset_test["observation"]
     actions = dataset_test["action"]
     obs_shape = (3, 128, 128)
     action_dim = 7
-    T = 5
-    stoch_dim = 200
+    T = episode_len
+    stoch_dim = stoch_dim
     device = "cuda" if torch.cuda.is_available() else 'cpu'
     upscale_network = UpscaleNetwork(stoch_dim).to(device)
-    upscale_network.load_state_dict(torch.load(f"{logic_models_path}/world_model_upscale_network_1000", weights_only=True, map_location=torch.device(device)))
+    upscale_network.load_state_dict(torch.load(f"{logic_models_path}/{world_model_upscale_network_name}", weights_only=True, map_location=torch.device(device)))
     logic_loss_object = LogicLoss(logic_models_path_best, model_name_digits=None, train_all=False)
 
     if vanilla_model:
-        embed_dim = 200
-        deter_dim = 400
+        embed_dim = embed_dim
+        deter_dim = deter_dim
         encoder = Encoder(obs_shape, embed_dim).to(device)
-        encoder.load_state_dict(torch.load(f"{vanilla_model_path}/world_model_encoder_1000", weights_only=True, map_location=torch.device(device)))
+        encoder.load_state_dict(torch.load(f"{vanilla_model_path}/{world_model_encoder_name}", weights_only=True, map_location=torch.device(device)))
         decoder = Decoder(embed_dim, obs_shape).to(device)
-        decoder.load_state_dict(torch.load(f"{vanilla_model_path}/world_model_decoder_1000", weights_only=True, map_location=torch.device(device)))
+        decoder.load_state_dict(torch.load(f"{vanilla_model_path}/{world_model_decoder_name}", weights_only=True, map_location=torch.device(device)))
         rssm = RSSM(action_dim, stoch_dim, deter_dim, embed_dim).to(device)
-        rssm.load_state_dict(torch.load(f"{vanilla_model_path}/world_model_rssm_1000", weights_only=True, map_location=torch.device(device)))
+        rssm.load_state_dict(torch.load(f"{vanilla_model_path}/{world_model_rssm_name}", weights_only=True, map_location=torch.device(device)))
     else:
-        embed_dim = 3*128*14*14
-        deter_dim = 200
+        embed_dim = embed_dim
+        deter_dim = deter_dim
         rssm = RSSM(action_dim, stoch_dim, deter_dim, embed_dim).to(device)
-        rssm.load_state_dict(torch.load(f"{logic_models_path}/world_model_rssm_1000", weights_only=True, map_location=torch.device(device)))
-        logic_ltn = LogicLoss(logic_models_path, model_name_digits=None, train_all=False)
+        rssm.load_state_dict(torch.load(f"{logic_models_path}/{world_model_rssm_name}", weights_only=True, map_location=torch.device(device)))
+        logic_ltn = LogicLoss(logic_models_path, model_name_front=ltn_front_name, model_name_right=ltn_right_name, model_name_up=ltn_up_name, model_name_dec=ltn_dec_name, model_name_rot_change=ltn_rot_change_name, model_name_digits=None, train_all=False)
         decoder = logic_ltn.ltn_models.dec
     
     num_episodes = int(len(obs)/T)
@@ -309,6 +309,8 @@ def main(dataset_test_path, vanilla_model_path, logic_models_path, vanilla_model
         np.save(f"{logic_models_path}/mse_errors_ltn_dreamer.npy", mse_errors.cpu().numpy())
         np.save(f"{logic_models_path}/logic_errors_ltn_dreamer.npy", logic_errors.cpu().numpy())
         np.save(f"{logic_models_path}/similarity_scores_ltn_dreamer.npy", similarity_scores.cpu().numpy())
+    
+    return mse_errors, logic_errors, similarity_scores.cpu().numpy()
 
     
 

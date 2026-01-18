@@ -79,19 +79,6 @@ def get_ltn_predictions(dataset, logic_loss_object, T=5):
         ltn_reconstruction_pred = logic_loss_object.get_ltn_predictions(initial_obs[:, 0], action[:, 0].max(dim=1, keepdim=True).values)
         return {"Base image (ground truth)":wandb.Image(initial_obs[0, 0]), "LTN Reconstruction": wandb.Image(ltn_reconstruction_pred[0]), "Ground Truth": wandb.Image(initial_obs[0, 1])}
 
-"""
-def inference(front, right, up, decoder, rot_change, initial_obs, actions):
-    with torch.no_grad():
-        obs = initial_obs
-        for t in range(len(actions)):
-            front_enc = rot_change(front(obs), actions[t])
-            right_enc = rot_change(right(obs), actions[t])
-            up_enc = rot_change(up(obs), actions[t])
-            obs = decoder(front_enc, right_enc, up_enc)
-            show_image = wandb.Image(obs[0])
-            wandb.log({f"Inference Step {t}": show_image})
-"""
-
 def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key, model_save_path, logic_models_path=None, project_name="vanilla_world_model", train_all=True, batch_size=32):
     obs_shape = (3, 128, 128)
     action_dim = 7
@@ -117,9 +104,10 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
     decoder = logic_loss_object.ltn_models.dec
 
     optim_model = torch.optim.Adam(list(dynamics_model.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) 
-   
-    wandb.login(key=login_key)
-    wandb.init(project=project_name)
+    
+    if login_key is not None:
+        wandb.login(key=login_key)
+        wandb.init(project=project_name)
 
     for epoch in range(epochs): 
         l = 0.
@@ -163,12 +151,15 @@ def main(lr, epochs, embed_dim, dataset_train_path, dataset_test_path, login_key
             "Ground Truth": rollout_metrics["Ground Truth"],
             "Imagination": rollout_metrics["Imagination"]
         }
-        wandb.log(metrics)
+
+        if login_key is not None:
+            wandb.log(metrics)
         #wandb.log({"Reconstruction Loss": recon_loss.item()})
         #wandb.log({"KLD Loss": kld_loss.item()})
-        print(f"Epoch {epoch}: loss:{l}")
+        print(f"Epoch {epoch}: Train loss:{l/total_iterations}, ")
     
-    wandb.finish()
+    if login_key is not None:
+        wandb.finish()
     logic_loss_object.ltn_models.save_all_models(model_save_path)
     save_model(dynamics_model, epochs, "dynamics", model_save_path)
     

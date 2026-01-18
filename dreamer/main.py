@@ -103,7 +103,7 @@ def eval_rollout(dataset, encoder, rssm, decoder, T=5):
 
         return roll_outs
 
-def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model", logic_weight=15000.0, logic_decay_rate=1.0, train_all=True, batch_size=32):
+def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model", logic_weight=15000.0, logic_decay_rate=1.0, train_all=True, batch_size=32, episode_len=5):
     obs_shape = (3, 128, 128)
     action_dim = 7
     embed_dim = embed_dim
@@ -119,7 +119,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     dataset_train = dataset_object.get_dataset_train()
     dataset_test = dataset_object.get_dataset_test()
 
-    B, T = batch_size, 5
+    B, T = batch_size, episode_len
     total_iterations = int(dataset_train.observation.shape[0] / B)
     epochs = epochs
     beta = beta
@@ -133,9 +133,10 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
         optim_model = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters()) + list(rssm.parameters()), lr=lr)
     else:
         optim_model = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters()) + list(rssm.parameters()), lr=lr) # + logic_loss_object.get_logic_parameters(), lr=lr)
-
-    wandb.login(key=login_key)
-    wandb.init(project=project_name)
+    
+    if login_key is not None:
+        wandb.login(key=login_key)
+        wandb.init(project=project_name)
 
     for epoch in range(epochs): 
         l = 0.
@@ -214,13 +215,16 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             "KLD Loss Test": loss_metrics["kl_loss"],
             #"Logic Loss Test": loss_metrics["logic_loss"]
         }
-        wandb.log(metrics)
+
+        if login_key is not None:
+            wandb.log(metrics)
         #wandb.log({"Reconstruction Loss": recon_loss.item()})
         #wandb.log({"KLD Loss": kld_loss.item()})
         print(f"Epoch {epoch}: recon_loss={recon_loss.item():.2f}, kld_loss={kld_loss.item():.2f}") #, Logic loss:{logic_l}")
         #logic_weight = logic_weight*logic_decay_rate
     
-    wandb.finish()
+    if login_key is not None:
+        wandb.finish()
     save_model(encoder, epochs, "encoder", model_save_path)
     save_model(decoder, epochs, "decoder", model_save_path)
     save_model(rssm, epochs, "rssm", model_save_path)

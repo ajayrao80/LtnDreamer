@@ -72,6 +72,7 @@ jupyterlab-pygments @ file:///tmp/build/80754af9/jupyterlab_pygments_16014907206
 jupyterlab_server @ file:///C:/b/abs_fdi5r_tpjc/croot/jupyterlab_server_1725865372811/work
 jupyterlab_widgets==3.0.15
 kiwisolver==1.4.8
+lazy_loader==0.4
 LTNtorch==1.0.2
 Mako @ file:///home/conda/feedstock_root/build_artifacts/mako_1738719574846/work
 Markdown==3.7
@@ -89,8 +90,9 @@ nest-asyncio @ file:///C:/b/abs_65d6lblmoi/croot/nest-asyncio_1708532721305/work
 networkx==3.3
 notebook @ file:///C:/b/abs_b552cuftgu/croot/notebook_1738159967315/work
 notebook_shim @ file:///C:/b/abs_a5xysln3lb/croot/notebook-shim_1699455926920/work
-numpy==1.23.5
+numpy @ file:///D:/bld/numpy_1739425601835/work/dist/numpy-2.2.3-cp310-cp310-win_amd64.whl#sha256=8b608a83814037c4711896674254022aa7e25c2c965a0755d35b0ad417d01a20
 onnx==1.15.0
+opencv-python==4.13.0.90
 optuna @ file:///home/conda/feedstock_root/build_artifacts/optuna_1739496942095/work
 overrides @ file:///C:/b/abs_cfh89c8yf4/croot/overrides_1699371165349/work
 packaging @ file:///C:/b/abs_3by6s2fa66/croot/packaging_1734472138782/work
@@ -128,6 +130,7 @@ requests @ file:///C:/b/abs_c3508vg8ez/croot/requests_1731000584867/work
 rfc3339-validator @ file:///C:/b/abs_ddfmseb_vm/croot/rfc3339-validator_1683077054906/work
 rfc3986-validator @ file:///C:/b/abs_6e9azihr8o/croot/rfc3986-validator_1683059049737/work
 rpds-py @ file:///C:/b/abs_0c6z5kcdb6/croot/rpds-py_1736545465023/work
+scikit-image==0.25.2
 scikit-learn==1.6.1
 scipy==1.15.2
 seaborn==0.13.2
@@ -145,6 +148,7 @@ tensorboard==2.19.0
 tensorboard-data-server==0.7.2
 terminado @ file:///C:/b/abs_25nakickad/croot/terminado_1671751845491/work
 threadpoolctl==3.6.0
+tifffile==2025.5.10
 tinycss2 @ file:///C:/b/abs_df38owi5ma/croot/tinycss2_1738337725183/work
 tomli @ file:///C:/Windows/TEMP/abs_ac109f85-a7b3-4b4d-bcfd-52622eceddf0hy332ojo/croots/recipe/tomli_1657175513137/work
 torch==2.6.0+cu118

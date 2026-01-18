@@ -1,0 +1,43 @@
+from dreamer.eval_models import main
+import argparse
+
+def evaluate_vanilla_dreamer(vanilla_model_path, dataset_test_path, logic_models_path, world_model_upscale_network_name, world_model_encoder_name, world_model_decoder_name, world_model_rssm_name, embed_dim, deter_dim, stoch_dim, episode_len=5, logic_models_path_best=None):
+    mse, logic_error, sim_scores = main(dataset_test_path, vanilla_model_path=vanilla_model_path, logic_models_path=logic_models_path, world_model_upscale_network_name=world_model_upscale_network_name, world_model_encoder_name=world_model_encoder_name, world_model_decoder_name=world_model_decoder_name, world_model_rssm_name=world_model_rssm_name, ltn_front_name=None, ltn_right_name=None, ltn_up_name=None, ltn_dec_name=None, ltn_rot_change_name=None, embed_dim=embed_dim, deter_dim=deter_dim, stoch_dim=stoch_dim, episode_len=5, logic_models_path_best=None, vanilla_model=True)
+    mse_mean = mse.mean(axis=0)
+    mse_std = mse.std(axis=0)
+    logic_error_mean = (logic_error/2).mean(axis=0)
+    logic_error_std = (logic_error/2).std(axis=0)
+    sim_scores_mean = sim_scores.mean(axis=0)
+    sim_scores_std = sim_scores.std(axis=0)
+    print("MSE t=0: ", mse_mean[0].item(), "+-", mse_std[0].item())
+    print("MSE t=1: ", mse_mean[1].item(), "+-", mse_std[1].item())
+    print("MSE t=2: ", mse_mean[2].item(), "+-", mse_std[2].item())
+    print("MSE t=3: ", mse_mean[3].item(), "+-", mse_std[3].item())
+    print("-------------------------------------------------------------------------------------------------------------------")
+    print("Logic Loss t=0: ", logic_error_mean[0].item(), "+-", logic_error_std[0].item())
+    print("Logic Loss t=1: ", logic_error_mean[1].item(), "+-", logic_error_std[1].item())
+    print("Logic Loss t=2: ", logic_error_mean[2].item(), "+-", logic_error_std[2].item())
+    print("Logic Loss t=3: ", logic_error_mean[3].item(), "+-", logic_error_std[3].item())
+    print("-------------------------------------------------------------------------------------------------------------------")
+    print("Logic Loss t=0: ", sim_scores_mean[0].item(), "+-", sim_scores_std[0].item())
+    print("Logic Loss t=1: ", sim_scores_mean[1].item(), "+-", sim_scores_std[1].item())
+    print("Logic Loss t=2: ", sim_scores_mean[2].item(), "+-", sim_scores_std[2].item())
+    print("Logic Loss t=3: ", sim_scores_mean[3].item(), "+-", sim_scores_std[3].item())
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--vanilla_model_path', type=str, required=True)
+    parser.add_argument('--dataset_test_path', type=str, required=True)
+    parser.add_argument('--logic_models_path', type=str, required=True)
+    parser.add_argument('--world_model_upscale_network_name', type=str, required=True)
+    parser.add_argument('--world_model_encoder_name', type=str, required=True)
+    parser.add_argument('--world_model_decoder_name', type=str, required=True)
+    parser.add_argument('--world_model_rssm_name', type=str, required=True)
+    parser.add_argument('--embed_dim', type=int, default=200)
+    parser.add_argument('--deter_dim', type=int, default=400)
+    parser.add_argument('--stoch_dim', type=int, default=200)
+    parser.add_argument('--episode_len', type=int, default=5)
+    parser.add_argument('--logic_models_path_best', type=str, default=None)
+    args = parser.parse_args()
+    evaluate_vanilla_dreamer(args.vanilla_model_path, args.dataset_test_path, args.logic_models_path, args.world_model_upscale_network_name, args.world_model_encoder_name, args.world_model_decoder_name, args.world_model_rssm_name, args.embed_dim, args.deter_dim, args.stoch_dim, args.episode_len, args.logic_models_path_best)
+

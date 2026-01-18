@@ -126,7 +126,7 @@ def get_ltn_predictions(dataset, logic_loss_object, T=5):
         ltn_reconstruction_pred = logic_loss_object.get_ltn_predictions(initial_obs, action)
         return {"LTN Reconstruction": wandb.Image(ltn_reconstruction_pred[0]), "Ground Truth": wandb.Image(sample.observation[0, 1])}
 
-def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model", logic_weight=25000.0, logic_decay_rate=1.0, train_all=True, batch_size=32):
+def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, dataset_test_path, beta, login_key, model_save_path, logic_models_path=None, free_nats=3.0, project_name="vanilla_world_model", logic_weight=25000.0, logic_decay_rate=1.0, train_all=True, batch_size=32, T=5):
     obs_shape = (3, 128, 128)
     action_dim = 7
     embed_dim = embed_dim
@@ -143,7 +143,7 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     dataset_train = dataset_object.get_dataset_train()
     dataset_test = dataset_object.get_dataset_test()
 
-    B, T = batch_size, 5
+    B, T = batch_size, T
     total_iterations = int(dataset_train.observation.shape[0] / (B*T))
     epochs = epochs
     beta = beta
@@ -160,8 +160,9 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
     #else:
     optim_model = torch.optim.Adam(list(upscale_network.parameters()) + list(rssm.parameters()) + logic_loss_object.get_logic_parameters(), lr=lr) #list(encoder.parameters()) + list(decoder.parameters())
     
-    wandb.login(key=login_key)
-    wandb.init(project=project_name)
+    if login_key is not None:
+        wandb.login(key=login_key)
+        wandb.init(project=project_name)
 
     for epoch in range(epochs): 
         l = 0.
@@ -247,13 +248,16 @@ def main(lr, epochs, embed_dim, stoch_dim, deter_dim, dataset_train_path, datase
             "LTN Predictions": ltn_predictions["LTN Reconstruction"],
             "LTN Ground Truth": ltn_predictions["Ground Truth"]
         }
-        wandb.log(metrics)
+
+        if login_key is not None:
+            wandb.log(metrics)
         #wandb.log({"Reconstruction Loss": recon_loss.item()})
         #wandb.log({"KLD Loss": kld_loss.item()})
-        print(f"Epoch {epoch}: kld_loss={kld_loss.item():.2f}, Logic loss:{logic_l}") #recon_loss={recon_loss.item():.2f}
+        print(f"Epoch {epoch}: kld_loss={kld_loss.item():.2f}, Logic loss:{logic_l/total_iterations}, Reconstruction Loss Train: {rl/total_iterations}") #recon_loss={recon_loss.item():.2f}
         logic_weight = logic_weight*logic_decay_rate
     
-    wandb.finish()
+    if login_key is not None:
+        wandb.finish()
     #save_model(encoder, epochs, "encoder", model_save_path)
     logic_loss_object.ltn_models.save_all_models(model_save_path)
     save_model(decoder, epochs, "decoder", model_save_path)
