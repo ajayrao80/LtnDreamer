@@ -1,48 +1,43 @@
-**Project Overview**
+# Logic Dreamer: Dataset Generation, Training, and Evaluation
 
 Code (and dataset) for the paper "Integrating qualitative spatial model to reason about rotations into world models
 using Logic Tensor Networks"
 
-Logic Dreamer: Dataset Generation, Training, and Evaluation
-
 This repository provides a full pipeline for:
-
 Dataset generation from environments
 
-Training Logic Dreamer (Dreamer + logic constraints)
+-Training Logic Dreamer (Dreamer + logic constraints)
+-Training Vanilla Dreamer
+-Evaluating both models
+-Testing one-shot generalization using handwritten-letter environments
 
-Training Vanilla Dreamer
-
-Evaluating both models
-
-Testing one-shot generalization using handwritten-letter environments
-
-1. Dataset Generation
+## 1. Dataset Generation
 
 Generate episodic datasets from a given environment.
-
-Usage
+### Usage
+```bash
 python GenerateDataset.py \
   --env_path ENV_PATH_HERE \
   --path_to_save PATH_TO_SAVE_DATASET \
   --number_of_episodes NUMBER_OF_EPISODES \
   --episode_len EPISODE_LENGTH
+```
 
-Arguments
+### Arguments
 
+```bash
 --env_path: Path to the environment file
-
 --path_to_save: Directory where the dataset will be saved
-
 --number_of_episodes: Number of episodes to generate
-
 --episode_len: Length of each episode
+```
 
-2. Logic Dreamer Training
+## 2. Logic Dreamer Training
 
-Train the Logic Dreamer using pre-generated datasets.
+### Train the Logic Dreamer using pre-generated datasets.
 
-Usage
+### Usage
+```bash
 python train_logic_dreamer.py \
   --train_dataset_path TRAIN_DATASET_PATH_HERE \
   --test_dataset_path TEST_DATASET_PATH_HERE \
@@ -51,7 +46,7 @@ python train_logic_dreamer.py \
   --train_dataset_size TRAIN_DATASET_SIZE \
   --test_dataset_size TEST_DATASET_SIZE
 
-Optional Arguments
+### Optional Arguments
 --episode_len
 --batch_size
 --project_name
@@ -63,7 +58,7 @@ Optional Arguments
 --lr
 --epochs
 
-Default Values
+### Default Values
 stoch_dim     = 200
 episode_len  = 5
 batch_size   = 64
@@ -71,16 +66,17 @@ free_nats    = 3.0
 logic_weight = 25000.0
 lr           = 0.0001
 epochs       = 1000
+```
 
+#### Note
+```project_name``` and ```login_key``` are optional and only required if logging to Weights & Biases (wandb).
 
-Note
-project_name and login_key are optional and only required if logging to Weights & Biases (wandb).
+## 3. Vanilla Dreamer Training
 
-3. Vanilla Dreamer Training
+### Train a standard Dreamer model without logic constraints.
 
-Train a standard Dreamer model without logic constraints.
-
-Usage
+### Usage
+```bash
 python train_vanilla_dreamer.py \
   --train_dataset_path TRAIN_DATASET_PATH_HERE \
   --test_dataset_path TEST_DATASET_PATH_HERE \
@@ -88,7 +84,7 @@ python train_vanilla_dreamer.py \
   --train_dataset_size TRAIN_DATASET_SIZE \
   --test_dataset_size TEST_DATASET_SIZE
 
-Optional Arguments
+### Optional Arguments
 --lr
 --epochs
 --episode_len
@@ -97,7 +93,7 @@ Optional Arguments
 --stoch_dim
 --deter_dim
 
-Default Values
+### Default Values
 deter_dim    = 400
 stoch_dim    = 200
 embed_dim    = 200
@@ -106,12 +102,14 @@ batch_size  = 64
 free_nats   = 3.0
 lr          = 0.0001
 epochs      = 1000
+```
 
-4. Logic Dreamer Evaluation
+## 4. Logic Dreamer Evaluation
 
-Evaluate a trained Logic Dreamer model.
+### Evaluate a trained Logic Dreamer model.
 
-Usage
+### Usage
+```bash
 python eval_logic_dreamer.py \
   --dataset_test_path DATASET_PATH_HERE \
   --logic_models_path LOGIC_MODELS_PATH_HERE \
@@ -134,12 +132,14 @@ deter_dim    = 400
 stoch_dim    = 200
 episode_len = 5
 logic_models_path_best = None
+```
 
-5. Vanilla Dreamer Evaluation
+## 5. Vanilla Dreamer Evaluation
 
-Evaluate a trained Vanilla Dreamer model.
+### Evaluate a trained Vanilla Dreamer model.
 
-Usage
+### Usage
+```bash
 python evaluate_vanilla_dreamer.py \
   --vanilla_model_path VANILLA_MODEL_PATH_HERE \
   --dataset_test_path TEST_DATASET_PATH_HERE \
@@ -162,26 +162,20 @@ stoch_dim    = 200
 embed_dim    = 200
 episode_len = 5
 logic_models_path_best = None
+```
+## 6. Environments
 
-6. Environments
+### The environments are provided as a ZIP file and include:
 
-The environments are provided as a ZIP file and include:
-
-Training Environment
+#### Training Environment
 Used to generate training datasets
-
-Test Environment
+#### Test Environment
 Used to generate test datasets
-
-Handwritten Letters Environment
+#### Handwritten Letters Environment
 Used to evaluate one-shot generalization on unseen handwritten symbols
 
-Recommended Workflow
-
-Generate training and test datasets
-
-Train Logic Dreamer and/or Vanilla Dreamer
-
-Evaluate on standard test datasets
-
-Evaluate on handwritten-letter datasets for one-shot generalization
+### Recommended Workflow
+1. Generate training and test datasets
+2. Train Logic Dreamer and/or Vanilla Dreamer
+3. Evaluate on standard test datasets
+4. Evaluate on handwritten-letter datasets for one-shot generalization
